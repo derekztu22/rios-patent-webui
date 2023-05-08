@@ -72,7 +72,7 @@ export default {
 <style scoped>
 #container {
     width: 80vw;
-    height: 80vh;
+    height: 70vh;
     text-align: left;
 }
 
