@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-table class="tableBox" :data="tableData" align="center" border style="width: 80vw;" :cell-style="myclass"
+        <el-table class="tableBox" :data="tableData" align="center" border style="width: 80vw;"
             highlight-current-row>
             <el-table-column align="center" v-for="(item, index) in headData" :key="index" :label="item.tableTitle">
                 <template slot-scope="scope">

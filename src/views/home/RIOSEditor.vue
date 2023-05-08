@@ -14,7 +14,7 @@
                 </el-select>
             </el-form-item>
             <el-form-item>
-                <el-button type="success" icon="el-icon-check" circle size="mini"></el-button>
+                <el-button type="success" icon="el-icon-check" circle size="mini" @click="commitTask"></el-button>
             </el-form-item>
         </el-form>
         <div id="container" ref="container"></div>
@@ -59,12 +59,20 @@ export default {
                 readOnly: false,
                 automaticLayout: true
             })
+            monaco.editor.setModelLanguage(this.monacoEditor.getModel(), 'scala')
         },
         themeChange(val) {
             monaco.editor.setTheme(val)
         },
         languageChange(val) {
             monaco.editor.setModelLanguage(this.monacoEditor.getModel(), val)
+        },
+        setContent(contentVar) {
+            const self = this
+            self.monacoEditor.getModel().setValue(contentVar)
+        },
+        commitTask() {
+            console.log('commit task')
         }
     }
 }
