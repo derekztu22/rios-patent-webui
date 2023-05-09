@@ -22,6 +22,9 @@
 </template>
 <script>
 import * as monaco from 'monaco-editor'
+import axios from 'axios'
+
+
 export default {
     name: "RIOSEditor",
     data() {
@@ -68,11 +71,40 @@ export default {
             monaco.editor.setModelLanguage(this.monacoEditor.getModel(), val)
         },
         setContent(contentVar) {
-            const self = this
-            self.monacoEditor.getModel().setValue(contentVar)
+            const model = this.monacoEditor.getModel()
+            const contentCur = model.getValue()
+            console.log(contentCur.length)
+            console.log(contentCur.length != 0)
+            if (contentCur.length != 0) {
+                this.$confirm('This will clear the code being edited. Continue?', 'Warning', {
+                    confirmButtonText: 'Confirm',
+                    cancelButtonText: 'Decline',
+                    type: 'warning'
+                }).then(() => {
+                    model.setValue(contentVar)
+                    // this.$message({
+                    //     type: 'success',
+                    //     message: '删除成功!'
+                    // });
+                }).catch(() => {
+                    // this.$message({
+                    //     type: 'info',
+                    //     message: '已取消删除'
+                    // });
+                });
+            }
+            else {
+                model.setValue(contentVar)
+            }
         },
-        commitTask() {
-            console.log('commit task')
+        async commitTask() {
+            var queryStr = "http://localhost:23457/commitTask"
+            const executeCode = this.monacoEditor.getModel().getValue()
+            const response = await axios.get(queryStr,
+                {
+                    params: { executeCode: executeCode }
+                });
+            console.log(response.data);
         }
     }
 }

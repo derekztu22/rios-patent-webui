@@ -35,3 +35,4 @@ object WordCountSQL {
     val filteredDFnm = spark.createDataFrame(filteredRDDnm, df.schema)
     filteredDFnm.show()
   }
+}

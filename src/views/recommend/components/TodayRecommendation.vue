@@ -21,9 +21,11 @@ export default {
     },
     methods: {
         async optionClick(patentID) {
-            var queryStr = "http://localhost:19527/patent/publications/"
-            const response = await axios.get(queryStr + patentID, {});
-            console.log(response.data);
+            var queryServer = "http://localhost:23457/patentSearch"
+            const response = await axios.get(queryServer,
+                {
+                    params: { patentID: patentID }
+                });
             this.$emit("search", response.data);
         },
     },

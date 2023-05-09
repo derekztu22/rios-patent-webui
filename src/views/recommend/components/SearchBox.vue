@@ -17,8 +17,11 @@ export default {
   },
   methods: {
     async getRecommendation() {
-      var queryStr = "http://localhost:19527/patent/publications/"
-      const response = await axios.get(queryStr + this.query, {});
+      var queryServer = "http://localhost:23457/patentSearch"
+      const response = await axios.get(queryServer,
+        {
+          params: { patentID: this.query }
+        });
       console.log(response.data);
       this.$emit("search", response.data);
     },

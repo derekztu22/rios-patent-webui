@@ -48,7 +48,12 @@ export default {
       for (let i = 0; i < recommendPubNums.length; i++) {
         const pubNum = recommendPubNums[i];
         console.log(pubNum)
-        const recommendationResponse = await axios.get(`http://localhost:19527/patent/publications/${pubNum}`);
+        // const recommendationResponse = await axios.get(`http://localhost:19527/patent/publications/${pubNum}`);
+        var queryServer = "http://localhost:23457/patentSearch"
+        const recommendationResponse= await axios.get(queryServer,
+        {
+          params: { patentID: pubNum }
+        });
         const { abstract, title } = recommendationResponse.data;
         this.recommendations.push({
           pubNum,

@@ -30,3 +30,4 @@ object TemplateSQL {
 
     // Code Here
   }
+}
