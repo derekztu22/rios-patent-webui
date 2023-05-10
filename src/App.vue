@@ -1,20 +1,19 @@
 <template>
   <div id="app">
-    <SearchPage/>
-    <!-- <PatentHome/> -->
+    <!-- <SearchPage/> -->
+    <PatentHome/>
   </div>
 </template>
 
 <script>
-// import HelloWorld from './components/HelloWorld.vue'
-import SearchPage from './views/recommend/SearchPage.vue';
-// import PatentHome from './views/PatentHome.vue';
+// import SearchPage from './views/recommend/SearchPage.vue';
+import PatentHome from './views/PatentHome.vue';
 
 export default {
   name: 'app',
   components: {
-    SearchPage,
-    // PatentHome
+    // SearchPage,
+    PatentHome
   }
 }
 </script>

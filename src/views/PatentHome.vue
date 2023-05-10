@@ -7,7 +7,7 @@
         <el-menu-item index="2" disabled>消息中心</el-menu-item>
       </el-menu> -->
       <div class="search-header">
-        <img src="@/assets/logo.png" alt="Logo"/>
+        <img src="@/assets/logo.png" alt="Logo" />
       </div>
     </el-header>
 
@@ -39,12 +39,28 @@
       <el-container>
         <!-- <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab"> -->
         <el-tabs v-model="editableTabsValue" type="card" @tab-remove="removeTab">
-          <el-tab-pane label="Spark Executor" name="executor">
-            <r-editor ref="childEditor"></r-editor>
+          <el-tab-pane 
+          label="Spark Executor" 
+          name="executor">
+            <r-editor 
+            ref="childEditor" 
+            @openNotification="openNotification"
+            @setResponseAndResult="setResponseAndResult"></r-editor>
           </el-tab-pane>
-          <el-tab-pane v-for="(item) in editableTabs" :key="item.name" :label="item.title" :name="item.name">
+          <el-tab-pane 
+          label="Spark Response" 
+          name="response">
+            <r-response ref="responseTab"></r-response>
+          </el-tab-pane>
+          <el-tab-pane label="Execution Result" name="result">
+            <r-table ref="resultTab"></r-table>
+          </el-tab-pane>
+          <el-tab-pane label="RIOS Table" name="table">
+            <r-table ref="tableTab"></r-table>
+          </el-tab-pane>
+          <!-- <el-tab-pane v-for="(item) in editableTabs" :key="item.name" :label="item.title" :name="item.name">
             <component :is="item.content"></component>
-          </el-tab-pane>
+          </el-tab-pane> -->
         </el-tabs>
       </el-container>
 
@@ -56,34 +72,41 @@
 <script>
 import RIOSEditor from './home/RIOSEditor.vue';
 import RIOSTable from './home/RIOSTable.vue';
+import RIOSResponse from './home/RIOSResponse.vue';
 import axios from 'axios';
 
 export default {
   components: {
     "r-editor": RIOSEditor,
-    "r-table": RIOSTable
+    "r-table": RIOSTable,
+    "r-response": RIOSResponse
   },
   data() {
     return {
       editableTabsValue: 'executor',
-      editableTabs: [
-        // {
-        //   title: 'Tab 1',
-        //   name: '1',
-        //   content: "r-editor",
-        //   refid: "editor"
-        // },
-        {
-          title: 'Response',
-          name: 'response',
-          content: "div",
-        },
-        {
-          title: 'RIOS Table',
-          name: 'table',
-          content: "r-table",
-        },
-      ],
+      // editableTabs: [
+      //   {
+      //     title: 'Tab 1',
+      //     name: '1',
+      //     content: "r-editor",
+      //     refid: "editor"
+      //   },
+      //   {
+      //     title: 'Spark Response',
+      //     name: 'response',
+      //     content: "r-response",
+      //   },
+      //   {
+      //     title: 'Result',
+      //     name: 'result',
+      //     content: "r-table",
+      //   },
+      //   {
+      //     title: 'RIOS Table',
+      //     name: 'table',
+      //     content: "r-table",
+      //   },
+      // ],
       tabIndex: 1
     }
   },
@@ -110,9 +133,15 @@ export default {
           }
         });
       }
-
       this.editableTabsValue = activeName;
       this.editableTabs = tabs.filter(tab => tab.name !== targetName);
+    },
+    openNotification(titleVar,contentVar) {
+      const h = this.$createElement;
+      this.$notify({
+        title: titleVar,
+        message: h('i', { style: 'color: teal' }, contentVar)
+      });
     },
     async loadTemplate(templateFilename) {
       var queryStr = "http://localhost:23457/loadTemplate"
@@ -120,9 +149,14 @@ export default {
         {
           params: { filename: templateFilename }
         });
-      console.log(response.data);
+      // console.log(response.data);
       this.$refs.childEditor.setContent(response.data)
     },
+    async setResponseAndResult(serverResponse) {
+      console.log(serverResponse)
+      this.$refs.responseTab.setResponse(serverResponse.output)
+      this.$refs.resultTab.setTable(serverResponse.table)
+    }
   }
 
 }

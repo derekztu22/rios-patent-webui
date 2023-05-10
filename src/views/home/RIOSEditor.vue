@@ -1,5 +1,5 @@
 <template>
-    <div class="myEditor">
+    <div class="myEditor" v-loading="loading">
         <el-form :inline="true" ref="form">
             <el-form-item>
                 <el-select v-model="theme" size="mini" @change="themeChange" placeholder="主题">
@@ -45,7 +45,9 @@ export default {
             ],
             languageOption: [],
             theme: 'vs',
-            language: 'scala'
+            language: 'scala',
+            loading: false,
+            taskID: 0
         }
     },
     mounted() {
@@ -73,8 +75,6 @@ export default {
         setContent(contentVar) {
             const model = this.monacoEditor.getModel()
             const contentCur = model.getValue()
-            console.log(contentCur.length)
-            console.log(contentCur.length != 0)
             if (contentCur.length != 0) {
                 this.$confirm('This will clear the code being edited. Continue?', 'Warning', {
                     confirmButtonText: 'Confirm',
@@ -97,7 +97,17 @@ export default {
                 model.setValue(contentVar)
             }
         },
+        async getTaskResponse() {
+            var queryStr = "http://localhost:23457/getTaskResponse"
+            const response = await axios.get(queryStr,
+                {
+                    params: { taskID: this.taskID }
+                });
+            this.$emit("setResponseAndResult", response.data)
+            this.$emit("openNotification","Server Response", "Task Executed Successfully");
+        },
         async commitTask() {
+            this.loading = true
             var queryStr = "http://localhost:23457/commitTask"
             const executeCode = this.monacoEditor.getModel().getValue()
             const response = await axios.get(queryStr,
@@ -105,7 +115,16 @@ export default {
                     params: { executeCode: executeCode }
                 });
             console.log(response.data);
-        }
+            this.loading = false
+            if (response.data.status == true) {
+                this.$emit("openNotification", "Maven Response", "Package Succeed.");
+                this.taskID = response.data.taskID
+            }
+            else {
+                this.$emit("openNotification", "Maven Response", "Package Failed.");
+            }
+            this.getTaskResponse()
+        },
     }
 }
 </script>

@@ -1,10 +1,10 @@
-package org.rioslab.spark.core.CPC
+package org.rioslab
 
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 
-object WordCountSQL {
+object APP {
 
   // 这里是程序运行的主函数
   def main(args: Array[String]) : Unit = {
