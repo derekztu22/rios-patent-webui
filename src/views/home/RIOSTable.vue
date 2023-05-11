@@ -15,8 +15,7 @@ export default {
     name: "RIOSTable",
     data() {
         return {
-            centerDialogVisible: true, //弹框显隐状态
-            // 模拟表头数据
+            centerDialogVisible: true,
             headData: [
                 // { tableTitle: "id" },
                 // { tableTitle: "姓名" },
@@ -52,22 +51,6 @@ export default {
     },
     mounted() { },
     methods: {
-        // 提交操作
-        present() {
-            let result = [];
-            // 通过双层循环拿到所需字段
-            this.tableData.forEach((item) => {
-                let data = {};
-                item.forEach((e) => {
-                    // 将字段名、字段值以键值对的形式赋值
-                    data[e.zdm] = e.value;
-                });
-                // 每一行数据为一个对象添加到数组中 [{},{},{},...]
-                result.push(data);
-            });
-            console.log(result, "参数");
-            // 执行接口操作
-        },
         setTable(tableVar) {
             // console.log(tableVar)
             this.headData = tableVar.headData

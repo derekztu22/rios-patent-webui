@@ -1,11 +1,53 @@
 const express = require('express')
 const fs = require('fs')
 const axios = require('axios')
+const shell = require('shelljs');
 
 const app = express()
 const port = 23457
 
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+var templateBegin,templateEnd
+fs.readFile('./scala_templates/stable/begin.tp', 'utf-8', (err, data) => {
+    if (err) return console.log(err.message);
+    templateBegin=data;
+})
+fs.readFile('./scala_templates/stable/end.tp', 'utf-8', (err, data) => {
+    if (err) return console.log(err.message);
+    templateEnd=data;
+})
+
+function parseFileNames(inputString) {
+    var lines = inputString.split('\n');
+    var filenames = [];
+
+    for (var i = 1; i < lines.length; i++) {
+        var line = lines[i];
+        var filePath = line.split(' ').pop();
+        var fileNameWithExtension = filePath.split('/').pop();
+        var fileName = fileNameWithExtension.split('.csv')[0]; // 移除文件扩展名.csv
+        filenames.push(
+            {
+                tableName: fileName,
+                tableHDFSPath: filePath
+            }
+        );
+    }
+
+    return filenames;
+}
+
+function addSpaces(inputString) {
+    var lines = inputString.trim().split('\n');
+    var outputString = '';
+
+    for (var i = 1; i < lines.length; i++) {
+        var line = lines[i];
+        outputString+='    '+line+'\n'
+    }
+
+    return outputString;
+}
 
 
 app.get('/loadTemplate', (req, res) => {
@@ -61,6 +103,8 @@ app.get('/getTable', (req, res) => {
 
 app.get('/commitTask', async (req, res) => {
     console.log("Call /commitTask");
+    fullTask=templateBegin+addSpaces(req.query.executeCode)+templateEnd
+    console.log(fullTask)
     await sleep(2000)
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(
@@ -86,6 +130,15 @@ app.get('/getTaskResponse', async (req, res) => {
             table: result.data
         }
     )
+})
+
+app.get('/getHDFSTableList', async (req, res) => {
+    console.log("Call /getHDFSTablesList");
+    shellRes = shell.exec("hdfs dfs -ls /patent/uspto/csv")
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send({
+        tableList: parseFileNames(shellRes)
+    })
 })
 
 app.get('/patentSearch', async (req, res) => {

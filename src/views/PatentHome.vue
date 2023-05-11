@@ -13,7 +13,7 @@
 
     <el-container>
 
-      <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+      <el-aside style="background-color: rgb(238, 241, 246);overflow: auto;" class="sidebar">
         <el-menu :default-openeds="['1']">
           <el-submenu index="1">
             <template slot="title"><i class="el-icon-message"></i>RIOS Spark</template>
@@ -25,31 +25,28 @@
             </el-submenu>
             <el-submenu index="1-2">
               <template slot="title">Algorithm</template>
-              <el-menu-item index="1-2-1">Recommend System</el-menu-item>
+              <el-menu-item index="1-2-1" @click="goTo()">Recommend System</el-menu-item>
               <el-menu-item index="1-2-2">NLP</el-menu-item>
             </el-submenu>
           </el-submenu>
-          <el-menu-item index="2">
-            <i class="el-icon-menu"></i>
-            <span slot="title">RIOS Patent Database</span>
-          </el-menu-item>
+          <el-submenu index="2">
+            <template slot="title"><i class="el-icon-menu" @click="refreshTableList"></i>RIOS Database</template>
+            <el-menu-item v-for="(item) in tableList" :key="item.tableName">
+              {{ item.tableName }}
+              <i class="el-icon-copy-document" @click="copyFilePath(item.tableHDFSPath)"></i>
+            </el-menu-item>
+          </el-submenu>
         </el-menu>
       </el-aside>
 
       <el-container>
         <!-- <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab"> -->
         <el-tabs v-model="editableTabsValue" type="card" @tab-remove="removeTab">
-          <el-tab-pane 
-          label="Spark Executor" 
-          name="executor">
-            <r-editor 
-            ref="childEditor" 
-            @openNotification="openNotification"
-            @setResponseAndResult="setResponseAndResult"></r-editor>
+          <el-tab-pane label="Spark Executor" name="executor">
+            <r-editor ref="childEditor" @openNotification="openNotification"
+              @setResponseAndResult="setResponseAndResult"></r-editor>
           </el-tab-pane>
-          <el-tab-pane 
-          label="Spark Response" 
-          name="response">
+          <el-tab-pane label="Spark Response" name="response">
             <r-response ref="responseTab"></r-response>
           </el-tab-pane>
           <el-tab-pane label="Execution Result" name="result">
@@ -107,7 +104,11 @@ export default {
       //     content: "r-table",
       //   },
       // ],
-      tabIndex: 1
+      tabIndex: 1,
+      tableList: [
+        // {tableName:"uspto"},
+        // {tableName:"gpatent"},
+      ]
     }
   },
   methods: {
@@ -136,7 +137,10 @@ export default {
       this.editableTabsValue = activeName;
       this.editableTabs = tabs.filter(tab => tab.name !== targetName);
     },
-    openNotification(titleVar,contentVar) {
+    goTo() {
+      this.$router.push('/SearchPage')
+    },
+    openNotification(titleVar, contentVar) {
       const h = this.$createElement;
       this.$notify({
         title: titleVar,
@@ -149,18 +153,40 @@ export default {
         {
           params: { filename: templateFilename }
         });
-      // console.log(response.data);
       this.$refs.childEditor.setContent(response.data)
     },
     async setResponseAndResult(serverResponse) {
       console.log(serverResponse)
       this.$refs.responseTab.setResponse(serverResponse.output)
       this.$refs.resultTab.setTable(serverResponse.table)
-    }
+    },
+    async refreshTableList() {
+      var queryStr = "http://localhost:23457/getHDFSTableList"
+      const response = await axios.get(queryStr);
+      response.data.tableList.forEach(
+        (item) => {
+          this.tableList.push(item)
+        }
+      )
+    },
+    copyFilePath(tablePath) {
+      var input = document.createElement('input')
+      input.value = tablePath;
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand("copy");
+      this.openNotification("Response","Path copied")
+      document.body.removeChild(input)
+    },
+  },
+  mounted() {
+    this.refreshTableList()
   }
-
 }
 </script>
-<style lang="">
-    
+<style>
+.sidebar {
+  width: 300px;
+  height: 80vh
+}
 </style>
