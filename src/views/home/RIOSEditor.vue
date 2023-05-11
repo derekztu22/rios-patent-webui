@@ -97,14 +97,14 @@ export default {
                 model.setValue(contentVar)
             }
         },
-        async getTaskResponse() {
+        async getTaskData() {
             var queryStr = "http://localhost:23457/getTaskResponse"
             const response = await axios.get(queryStr,
                 {
                     params: { taskID: this.taskID }
                 });
-            this.$emit("setResponseAndResult", response.data)
-            this.$emit("openNotification","Server Response", "Task Executed Successfully");
+            this.$emit("setTable", response.data)
+            this.$emit("openNotification", "Server Response", "Task Executed Successfully");
         },
         async commitTask() {
             this.loading = true
@@ -116,14 +116,19 @@ export default {
                 });
             console.log(response.data);
             this.loading = false
-            if (response.data.status == true) {
+            var taskExecFlag = response.data.success
+            var taskData = response.data.data
+            if (taskExecFlag) {
                 this.$emit("openNotification", "Maven Response", "Package Succeed.");
-                this.taskID = response.data.taskID
+                this.taskID = taskData.taskID
+                this.$emit("setOutput", taskData.output)
             }
             else {
                 this.$emit("openNotification", "Maven Response", "Package Failed.");
+                this.$emit("setOutput", response.data.error_message)
             }
-            this.getTaskResponse()
+            if (taskData.hasData)
+                this.getTaskData()
         },
     }
 }

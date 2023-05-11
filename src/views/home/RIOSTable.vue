@@ -53,7 +53,14 @@ export default {
     methods: {
         setTable(tableVar) {
             // console.log(tableVar)
-            this.headData = tableVar.headData
+            this.headData.length = 0
+            tableVar.headData.forEach(
+                (item) => {
+                    this.headData.push(item)
+                }
+            )
+
+            this.tableData.length = 0
             tableVar.tableData.forEach(
                 (item) => {
                     this.tableData.push(item)

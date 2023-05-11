@@ -19,9 +19,9 @@
             <template slot="title"><i class="el-icon-message"></i>RIOS Spark</template>
             <el-submenu index="1-1">
               <template slot="title">Analyze</template>
-              <el-menu-item index="1-1-1" @click="loadTemplate('emptyTemplate')">Empty Template</el-menu-item>
-              <el-menu-item index="1-1-1" @click="loadTemplate('CPC')">CPC</el-menu-item>
-              <el-menu-item index="1-1-2">Word Count</el-menu-item>
+              <el-menu-item index="1-1-1" @click="loadTemplate('EmptyTemplate')">Empty Template</el-menu-item>
+              <el-menu-item index="1-1-2" @click="loadTemplate('LoadTable')">Load Table</el-menu-item>
+              <el-menu-item index="1-1-3" @click="loadTemplate('WordCount')">Word Count</el-menu-item>
             </el-submenu>
             <el-submenu index="1-2">
               <template slot="title">Algorithm</template>
@@ -43,8 +43,7 @@
         <!-- <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab"> -->
         <el-tabs v-model="editableTabsValue" type="card" @tab-remove="removeTab">
           <el-tab-pane label="Spark Executor" name="executor">
-            <r-editor ref="childEditor" @openNotification="openNotification"
-              @setResponseAndResult="setResponseAndResult"></r-editor>
+            <r-editor ref="childEditor" @openNotification="openNotification" @setOutput="setOutput" @setTable="setTable"></r-editor>
           </el-tab-pane>
           <el-tab-pane label="Spark Response" name="response">
             <r-response ref="responseTab"></r-response>
@@ -155,10 +154,11 @@ export default {
         });
       this.$refs.childEditor.setContent(response.data)
     },
-    async setResponseAndResult(serverResponse) {
-      console.log(serverResponse)
-      this.$refs.responseTab.setResponse(serverResponse.output)
-      this.$refs.resultTab.setTable(serverResponse.table)
+    setOutput(serverOutput) {
+      this.$refs.responseTab.setResponse(serverOutput)
+    },
+    setTable(serverTable) {
+      this.$refs.resultTab.setTable(serverTable)
     },
     async refreshTableList() {
       var queryStr = "http://localhost:23457/getHDFSTableList"
@@ -175,7 +175,7 @@ export default {
       document.body.appendChild(input)
       input.select()
       document.execCommand("copy");
-      this.openNotification("Response","Path copied")
+      this.openNotification("Response", "Path copied")
       document.body.removeChild(input)
     },
   },

@@ -7,18 +7,19 @@ const app = express()
 const port = 23457
 
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
-var templateBegin,templateEnd
+
+var templateBegin, templateEnd
 fs.readFile('./scala_templates/stable/begin.tp', 'utf-8', (err, data) => {
     if (err) return console.log(err.message);
-    templateBegin=data;
+    templateBegin = data;
 })
 fs.readFile('./scala_templates/stable/end.tp', 'utf-8', (err, data) => {
     if (err) return console.log(err.message);
-    templateEnd=data;
+    templateEnd = data;
 })
 
 function parseFileNames(inputString) {
-    var lines = inputString.split('\n');
+    var lines = inputString.trim().split('\n');
     var filenames = [];
 
     for (var i = 1; i < lines.length; i++) {
@@ -38,17 +39,25 @@ function parseFileNames(inputString) {
 }
 
 function addSpaces(inputString) {
-    var lines = inputString.trim().split('\n');
+    var lines = inputString.split('\n');
     var outputString = '';
 
-    for (var i = 1; i < lines.length; i++) {
+    for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
-        outputString+='    '+line+'\n'
+        outputString += '        ' + line + '\n'
     }
 
     return outputString;
 }
 
+app.get('/getHDFSTableList', async (req, res) => {
+    console.log("Call /getHDFSTablesList");
+    shellRes = shell.exec("hdfs dfs -ls /patent/uspto/csv")
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send({
+        tableList: parseFileNames(shellRes)
+    })
+})
 
 app.get('/loadTemplate', (req, res) => {
     console.log("Call /loadTemplate");
@@ -103,52 +112,53 @@ app.get('/getTable', (req, res) => {
 
 app.get('/commitTask', async (req, res) => {
     console.log("Call /commitTask");
-    fullTask=templateBegin+addSpaces(req.query.executeCode)+templateEnd
-    console.log(fullTask)
-    await sleep(2000)
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.send(
+    fullTask = templateBegin + addSpaces(req.query.executeCode) + templateEnd
+    query = {
+        className: "ExecObj",
+        packageName: "exec"
+    }
+    queryRouter = "http://localhost:19527/patent/publications/submit?"
+    for (const [key, value] of Object.entries(query)) {
+        queryRouter += "&" + key + "=" + value
+    }
+    console.log("Post " + queryRouter)
+    const response = await axios.post(queryRouter,
         {
-            status: true,
-            taskID: 123456
-        })
+            code: fullTask
+        });
+    // console.log(response.data)
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send(response.data)
 })
 
-app.get('/getTaskResponse', async (req, res) => {
-    console.log("Call /getTaskResponse");
-    const response = await axios.get("http://localhost:23457/loadTemplate",
-        {
-            params: { filename: "tmp" }
-        });
-    const result = await axios.get("http://localhost:23457/getTable");
-    await sleep(2000)
+app.get('/getTaskData', async (req, res) => {
+    console.log("Call /getTaskData");
+    // const response = await axios.get("http://localhost:23457/loadTemplate",
+    //     {
+    //         params: { filename: "tmp" }
+    //     });
+    // const result = await axios.get("http://localhost:23457/getTable");
+    // await sleep(2000)
 
+    const response = await axios.get("http://localhost:19527/patent/publications/query",
+        {
+            params: { taskID: req.query.taskID }
+        });
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(
         {
-            output: response.data,
-            table: result.data
+            table: response.data,
         }
     )
 })
 
-app.get('/getHDFSTableList', async (req, res) => {
-    console.log("Call /getHDFSTablesList");
-    shellRes = shell.exec("hdfs dfs -ls /patent/uspto/csv")
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.send({
-        tableList: parseFileNames(shellRes)
-    })
-})
-
 app.get('/patentSearch', async (req, res) => {
     console.log("Call /patentSearch");
-    console.log(req.query)
     var SpringServer = "http://localhost:19527/patent/publications/"
     const response = await axios.get(SpringServer + req.query.patentID);
     console.log(response.data);
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.send(response.data)
+    res.send(response.data.data)
 })
 
 app.listen(port, () => { console.log(`node backend listening on port ${port}`) })

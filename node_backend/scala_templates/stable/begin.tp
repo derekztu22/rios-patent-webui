@@ -1,17 +1,17 @@
-package org.rioslab
+package org.rioslab.spark.core.exec
 
-import org.apache.spark.SparkConf
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.functions.col
+import org.apache.spark.{SparkConf, sql}
+import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
+import org.rioslab.spark.core.util.CacheUtil
 
-object APP {
-  def main(args: Array[String]) : Unit = {
+object ExecObj {
+    def run(args: Array[String]): String = {
+        val config = new SparkConf()
+            .setMaster("local[*]")
+            .setAppName("WordCount SQL Application")
 
-    val config = new SparkConf()
-      .setMaster("local[*]")
-      .setAppName("Template SQL Application")
-
-    val spark = SparkSession.builder().config(config).getOrCreate()
-    import spark.implicits._
+        val spark = SparkSession.builder().config(config).getOrCreate()
+        import spark.implicits._
 
 

@@ -1,5 +1,5 @@
 <template>
-    <textarea id="responseSpan">
+    <textarea id="responseSpan" readonly>
     </textarea>
 </template>
 <script>
