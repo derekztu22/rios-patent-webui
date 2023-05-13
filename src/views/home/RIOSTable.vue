@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div id="tableContainer">
         <el-table class="tableBox" :data="tableData" align="center" border style="width: 80vw;" highlight-current-row>
             <el-table-column align="center" v-for="(item, index) in headData" :key="index" :label="item.tableTitle">
                 <template slot-scope="scope">
@@ -53,15 +53,31 @@ export default {
     methods: {
         setTable(tableVar) {
             // console.log(tableVar)
+            var headData = []
+            var tableData = []
+            for (const [key, value] of Object.entries(tableVar[0])) {
+                headData.push({ tableTitle: key })
+                value
+            }
+            tableVar.forEach(element => {
+                var row = []
+                for (const [key, value] of Object.entries(element)) {
+                    row.push({ value: value })
+                    key
+                }
+                tableData.push(row)
+            });
+            // console.log(headData)
+            // console.log(tableData)
+
             this.headData.length = 0
-            tableVar.headData.forEach(
+            headData.forEach(
                 (item) => {
                     this.headData.push(item)
                 }
             )
-
             this.tableData.length = 0
-            tableVar.tableData.forEach(
+            tableData.forEach(
                 (item) => {
                     this.tableData.push(item)
                 }
@@ -71,5 +87,16 @@ export default {
 };
 </script>
   
-<style scoped></style>
+<style scoped>
+#tableContainer {
+    width: 80vw;
+    height: 72vh;
+    margin: 0 auto;
+    padding: 10px;
+    text-align: left;
+    border-radius: 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+</style>
   

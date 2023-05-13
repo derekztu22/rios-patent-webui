@@ -14,7 +14,7 @@
                 </el-select>
             </el-form-item>
             <el-form-item>
-                <el-button type="success" icon="el-icon-check" circle size="mini" @click="commitTask"></el-button>
+                <el-button type="success" icon="el-icon-check" circle size="mini" @click="submitTask"></el-button>
             </el-form-item>
         </el-form>
         <div id="container" ref="container"></div>
@@ -22,8 +22,10 @@
 </template>
 <script>
 import * as monaco from 'monaco-editor'
+import * as r_const from '@/router/consts'
+import * as utils_func from '@/utils/func'
 import axios from 'axios'
-
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 export default {
     name: "RIOSEditor",
@@ -47,7 +49,7 @@ export default {
             theme: 'vs',
             language: 'scala',
             loading: false,
-            taskID: 0
+            queryID: null,
         }
     },
     mounted() {
@@ -82,53 +84,88 @@ export default {
                     type: 'warning'
                 }).then(() => {
                     model.setValue(contentVar)
-                    // this.$message({
-                    //     type: 'success',
-                    //     message: '删除成功!'
-                    // });
-                }).catch(() => {
-                    // this.$message({
-                    //     type: 'info',
-                    //     message: '已取消删除'
-                    // });
-                });
+                }).catch(() => { });
             }
             else {
                 model.setValue(contentVar)
             }
         },
-        async getTaskData() {
-            var queryStr = "http://localhost:23457/getTaskResponse"
-            const response = await axios.get(queryStr,
-                {
-                    params: { taskID: this.taskID }
-                });
-            this.$emit("setTable", response.data)
-            this.$emit("openNotification", "Server Response", "Task Executed Successfully");
-        },
-        async commitTask() {
+        async submitTask() {
+            this.$emit("openNotification", "info", "Tip", "Packaging may takes a while");
             this.loading = true
-            var queryStr = "http://localhost:23457/commitTask"
             const executeCode = this.monacoEditor.getModel().getValue()
-            const response = await axios.get(queryStr,
+            const response = await axios.get(r_const.querySubmitTask,
                 {
                     params: { executeCode: executeCode }
                 });
-            console.log(response.data);
+            var serverRes = response.data
+            // console.log(serverRes);
             this.loading = false
-            var taskExecFlag = response.data.success
-            var taskData = response.data.data
-            if (taskExecFlag) {
-                this.$emit("openNotification", "Maven Response", "Package Succeed.");
-                this.taskID = taskData.taskID
-                this.$emit("setOutput", taskData.output)
+            var taskPkgFlag = serverRes.success
+            var taskData = serverRes.data
+            if (taskPkgFlag) {
+                this.$emit("openNotification", "success", "Maven Response", "Package Succeed. Task Executing");
+                this.runTask()
+                this.$emit("setResponseLoading")
             }
             else {
-                this.$emit("openNotification", "Maven Response", "Package Failed.");
-                this.$emit("setOutput", response.data.error_message)
+                // this.$emit("openNotification", "error", "Maven Response", "Package Failed.");
+                this.$emit("openNotification", "error", "Error Code " + serverRes.error_code + "!", serverRes.error_message);
+                this.$emit("setOutput", taskData.output)
             }
-            if (taskData.hasData)
-                this.getTaskData()
+        },
+        async runTask() {
+            var queryID = utils_func.GenNonDuplicateID()
+            await axios.get(r_const.queryRunTask,
+                {
+                    params: { queryID: queryID }
+                });
+            this.queryID = queryID
+            this.queryTaskStatus()
+        },
+        async queryTaskStatus() {
+            const response = await axios.get(r_const.queryTaskStatus,
+                {
+                    params: { queryID: this.queryID }
+                });
+            var serverRes = response.data
+            // console.log(serverRes)
+            if (serverRes.status) {
+                var taskData = serverRes.data.data
+                var taskExecFlag = serverRes.data.success
+                if (taskExecFlag) {
+                    this.$emit("openNotification", "success", "Server Response", "Task Executed Successfully");
+                    this.$emit("setOutput", taskData.output)
+                    if (taskData.hasData) {
+                        this.taskID = taskData.taskID
+                        await sleep(1000)
+                        this.getTaskData()
+                    }
+                }
+                else {
+                    // this.$emit("openNotification", "error", "Server Response", "Task Failed");
+                    this.$emit("openNotification", "error", "Error Code " + serverRes.error_code + "!", serverRes.error_message);
+                    this.$emit("setOutput", taskData.output)
+                }
+            }
+            else {
+                setTimeout(this.queryTaskStatus, r_const.queryTaskStatusGap)
+            }
+        },
+        async getTaskData() {
+            const response = await axios.get(r_const.queryGetTaskData,
+                {
+                    params: { taskID: this.taskID }
+                });
+            var serverRes = response.data
+            // console.log(serverRes)
+            if (serverRes.success) {
+                this.$emit("setTable", serverRes.data)
+            }
+            else {
+                // this.$emit("openNotification", "error", "Server Response", "JSON Parse Failed");
+                this.$emit("openNotification", "error", "Error Code " + serverRes.error_code + "!", serverRes.error_message);
+            }
         },
     }
 }

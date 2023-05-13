@@ -24,5 +24,5 @@ val wordCount = wordsGroup
 
 wordCount.show()
 
-// 不返回数据就返回null
-null
+val sortedstring = wordCount.limit(100).toJSON.collectAsList().toString()
+sortedstring

@@ -1,9 +1,9 @@
 <template>
   <div class="search-page">
     <div class="search-container">
-      <div class="search-header">
+      <!-- <div class="search-header">
         <img src="./assets/favicon.png" alt="Logo" />
-      </div>
+      </div> -->
       <search-box @search="search"></search-box>
       <today-recommendation-container @search="search"></today-recommendation-container>
     </div>
@@ -20,6 +20,7 @@
 import SearchBox from "./components/SearchBox.vue";
 import RecommendationItem from "./components/RecommendationItem.vue";
 import TodayRecommendation from "./components/TodayRecommendation.vue";
+import * as r_const from '@/router/consts'
 import axios from 'axios';
 
 export default {
@@ -48,12 +49,10 @@ export default {
       for (let i = 0; i < recommendPubNums.length; i++) {
         const pubNum = recommendPubNums[i];
         console.log(pubNum)
-        // const recommendationResponse = await axios.get(`http://localhost:19527/patent/publications/${pubNum}`);
-        var queryServer = "http://localhost:23457/patentSearch"
-        const recommendationResponse= await axios.get(queryServer,
-        {
-          params: { patentID: pubNum }
-        });
+        const recommendationResponse = await axios.get(r_const.querySearchPatent,
+          {
+            params: { patentID: pubNum }
+          });
         const { abstract, title } = recommendationResponse.data;
         this.recommendations.push({
           pubNum,
@@ -70,9 +69,14 @@ export default {
 .search-page {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
-  min-height: 100vh;
+  height: 74vh;
+  width: 80vw;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 2px solid #d4d3d3e6;
+  border-radius: 5px;
 }
 
 .search-header {

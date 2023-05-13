@@ -1,12 +1,8 @@
 <template>
-  <el-container style="height: 80vh; border: 1px solid #eee">
+  <el-container style="height: 80vh;">
 
-    <el-header>
-      <!-- <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
-        <el-menu-item index="1">处理中心</el-menu-item>
-        <el-menu-item index="2" disabled>消息中心</el-menu-item>
-      </el-menu> -->
-      <div class="search-header">
+    <el-header class="rios-header">
+      <div>
         <img src="@/assets/logo.png" alt="Logo" />
       </div>
     </el-header>
@@ -19,9 +15,16 @@
             <template slot="title"><i class="el-icon-message"></i>RIOS Spark</template>
             <el-submenu index="1-1">
               <template slot="title">Analyze</template>
-              <el-menu-item index="1-1-1" @click="loadTemplate('EmptyTemplate')">Empty Template</el-menu-item>
-              <el-menu-item index="1-1-2" @click="loadTemplate('LoadTable')">Load Table</el-menu-item>
-              <el-menu-item index="1-1-3" @click="loadTemplate('WordCount')">Word Count</el-menu-item>
+              <el-menu-item index="1-1-1" @click="loadTemplate('LoadTable')">Load
+                Table</el-menu-item>
+              <el-menu-item index="1-1-2" @click="loadTemplate('WordCount')">Word
+                Count</el-menu-item>
+              <el-menu-item index="1-1-3" @click="loadTemplate('ARMCPC')">ARM
+                CPC</el-menu-item>
+              <el-menu-item index="1-1-4" @click="loadTemplate('ARMEXP')">ARM
+                EXP</el-menu-item>
+              <el-menu-item index="1-1-5" @click="loadTemplate('MIPSCPC')">MIPS
+                CPC</el-menu-item>
             </el-submenu>
             <el-submenu index="1-2">
               <template slot="title">Algorithm</template>
@@ -43,7 +46,8 @@
         <!-- <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab"> -->
         <el-tabs v-model="editableTabsValue" type="card" @tab-remove="removeTab">
           <el-tab-pane label="Spark Executor" name="executor">
-            <r-editor ref="childEditor" @openNotification="openNotification" @setOutput="setOutput" @setTable="setTable"></r-editor>
+            <r-editor ref="childEditor" @openNotification="openNotification" @setOutput="setOutput"
+              @setResponseLoading="setResponseLoading" @setTable="setTable"></r-editor>
           </el-tab-pane>
           <el-tab-pane label="Spark Response" name="response">
             <r-response ref="responseTab"></r-response>
@@ -51,8 +55,11 @@
           <el-tab-pane label="Execution Result" name="result">
             <r-table ref="resultTab"></r-table>
           </el-tab-pane>
-          <el-tab-pane label="RIOS Table" name="table">
+          <!-- <el-tab-pane label="RIOS Table" name="table">
             <r-table ref="tableTab"></r-table>
+          </el-tab-pane> -->
+          <el-tab-pane label="RIOS Search" name="search">
+            <r-search ref="searchTab"></r-search>
           </el-tab-pane>
           <!-- <el-tab-pane v-for="(item) in editableTabs" :key="item.name" :label="item.title" :name="item.name">
             <component :is="item.content"></component>
@@ -69,13 +76,16 @@
 import RIOSEditor from './home/RIOSEditor.vue';
 import RIOSTable from './home/RIOSTable.vue';
 import RIOSResponse from './home/RIOSResponse.vue';
+import * as r_const from '@/router/consts'
+import SearchPage from './recommend/SearchPage.vue';
 import axios from 'axios';
 
 export default {
   components: {
     "r-editor": RIOSEditor,
     "r-table": RIOSTable,
-    "r-response": RIOSResponse
+    "r-response": RIOSResponse,
+    "r-search": SearchPage
   },
   data() {
     return {
@@ -139,16 +149,15 @@ export default {
     goTo() {
       this.$router.push('/SearchPage')
     },
-    openNotification(titleVar, contentVar) {
-      const h = this.$createElement;
+    openNotification(typeVar, titleVar, contentVar) {
       this.$notify({
         title: titleVar,
-        message: h('i', { style: 'color: teal' }, contentVar)
+        message: contentVar,
+        type: typeVar
       });
     },
     async loadTemplate(templateFilename) {
-      var queryStr = "http://localhost:23457/loadTemplate"
-      const response = await axios.get(queryStr,
+      const response = await axios.get(r_const.queryLoadTemplate,
         {
           params: { filename: templateFilename }
         });
@@ -160,9 +169,11 @@ export default {
     setTable(serverTable) {
       this.$refs.resultTab.setTable(serverTable)
     },
+    setResponseLoading() {
+      this.$refs.responseTab.setLoading()
+    },
     async refreshTableList() {
-      var queryStr = "http://localhost:23457/getHDFSTableList"
-      const response = await axios.get(queryStr);
+      const response = await axios.get(r_const.queryLoadHDFSList);
       response.data.tableList.forEach(
         (item) => {
           this.tableList.push(item)
@@ -175,7 +186,7 @@ export default {
       document.body.appendChild(input)
       input.select()
       document.execCommand("copy");
-      this.openNotification("Response", "Path copied")
+      this.openNotification("success", "Success", "Path copied")
       document.body.removeChild(input)
     },
   },
@@ -188,5 +199,13 @@ export default {
 .sidebar {
   width: 300px;
   height: 80vh
+}
+
+.block {
+  border: 1px solid #d4d3d3e6
+}
+
+.rios-header {
+  margin: 20px;
 }
 </style>

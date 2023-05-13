@@ -7,6 +7,7 @@
   
 <script>
 import axios from 'axios';
+import * as r_const from '@/router/consts'
 
 export default {
   name: 'SearchBox',
@@ -17,8 +18,7 @@ export default {
   },
   methods: {
     async getRecommendation() {
-      var queryServer = "http://localhost:23457/patentSearch"
-      const response = await axios.get(queryServer,
+      const response = await axios.get(r_const.querySearchPatent,
         {
           params: { patentID: this.query }
         });

@@ -7,6 +7,7 @@ const app = express()
 const port = 23457
 
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+var taskList = {};
 
 var templateBegin, templateEnd
 fs.readFile('./scala_templates/stable/begin.tp', 'utf-8', (err, data) => {
@@ -59,8 +60,8 @@ app.get('/getHDFSTableList', async (req, res) => {
     })
 })
 
-app.get('/loadTemplate', (req, res) => {
-    console.log("Call /loadTemplate");
+app.get('/getTemplate', (req, res) => {
+    console.log("Call /getTemplate");
     fullFilename = './scala_templates/' + req.query.filename + '.scala'
     fs.readFile(fullFilename, 'utf-8', (err, data) => {
         if (err) return console.log(err.message);
@@ -110,12 +111,22 @@ app.get('/getTable', (req, res) => {
     })
 })
 
-app.get('/commitTask', async (req, res) => {
-    console.log("Call /commitTask");
+app.get('/submitTask', async (req, res) => {
+    console.log("Call /submitTask");
     fullTask = templateBegin + addSpaces(req.query.executeCode) + templateEnd
+    console.log(fullTask)
+    // await sleep(2000)
+    // res.setHeader("Access-Control-Allow-Origin", "*");
+    // res.send({
+    //     success:true,
+    //     data: {
+    //         taskID:123456
+    //     }
+    // })
+
     query = {
         className: "ExecObj",
-        packageName: "exec"
+        packageName: "org.rioslab.spark.core.exec"
     }
     queryRouter = "http://localhost:19527/patent/publications/submit?"
     for (const [key, value] of Object.entries(query)) {
@@ -126,30 +137,69 @@ app.get('/commitTask', async (req, res) => {
         {
             code: fullTask
         });
-    // console.log(response.data)
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(response.data)
 })
 
+app.get('/runTask', async (req, res) => {
+    console.log("Call /runTask");
+    queryID = req.query.queryID
+    console.log(queryID)
+
+    query = {
+        className: "ExecObj",
+        packageName: "org.rioslab.spark.core.exec"
+    }
+    queryRouter = "http://localhost:19527/patent/publications/run?"
+    for (const [key, value] of Object.entries(query)) {
+        queryRouter += "&" + key + "=" + value
+    }
+    console.log("Post " + queryRouter)
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send({ status: true })
+
+    runAxios = axios.create()
+    runAxios.defaults.timeout = 1000 * 60 * 10
+    const response = await runAxios.post(queryRouter);
+    taskList[queryID] = response.data
+
+    // await sleep(30000)
+    // taskList[queryID] = { data: { output: "fake data" }, success: true }
+    
+    console.log(queryID + " finished, add to TaskList")
+})
+
+app.get('/taskStatus', async (req, res) => {
+    console.log("Call /taskStatus");
+    queryID = req.query.queryID
+    console.log("taskList: " + Object.keys(taskList))
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+
+    if (queryID in taskList) {
+        res.send({
+            status: true,
+            data: taskList[queryID]
+        })
+        delete taskList[queryID]
+        console.log(queryID + " removed from TaskList")
+    }
+    else {
+        res.send({
+            status: false,
+            data: null
+        })
+    }
+})
+
 app.get('/getTaskData', async (req, res) => {
     console.log("Call /getTaskData");
-    // const response = await axios.get("http://localhost:23457/loadTemplate",
-    //     {
-    //         params: { filename: "tmp" }
-    //     });
-    // const result = await axios.get("http://localhost:23457/getTable");
-    // await sleep(2000)
-
     const response = await axios.get("http://localhost:19527/patent/publications/query",
         {
             params: { taskID: req.query.taskID }
         });
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.send(
-        {
-            table: response.data,
-        }
-    )
+    res.send(response.data)
 })
 
 app.get('/patentSearch', async (req, res) => {

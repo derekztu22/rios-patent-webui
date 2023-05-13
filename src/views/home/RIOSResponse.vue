@@ -1,12 +1,21 @@
 <template>
-    <textarea id="responseSpan" readonly>
-    </textarea>
+    <div v-loading="loading"><textarea id="responseSpan" readonly>
+    </textarea></div>
 </template>
 <script>
 export default {
-    name: "RIOSResponse",
+    data() {
+        return {
+            loading:false
+        }
+    },
     methods: {
+        setLoading() {
+            this.loading = true
+            // console.log("setLoading")
+        },
         setResponse(contentVar) {
+            this.loading=false
             let responseSpan = document.getElementById("responseSpan")
             responseSpan.innerHTML = contentVar
         }
@@ -16,7 +25,7 @@ export default {
 <style>
 #responseSpan {
     width: 80vw;
-    height: 70vh;
+    height: 72vh;
     margin: 0 auto;
     padding: 10px;
     text-align: left;

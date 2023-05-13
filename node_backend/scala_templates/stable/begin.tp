@@ -1,6 +1,6 @@
 package org.rioslab.spark.core.exec
 
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions._
 import org.apache.spark.{SparkConf, sql}
 import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
 import org.rioslab.spark.core.util.CacheUtil
