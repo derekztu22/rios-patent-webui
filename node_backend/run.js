@@ -4,6 +4,7 @@ const axios = require('axios')
 const shell = require('shelljs');
 const { setTimeout } = require('core-js');
 const { Parser } = require('@json2csv/plainjs')
+var log4js = require('log4js')
 
 // Consts
 const app = express();
@@ -17,13 +18,31 @@ var templateBegin, templateEnd;
 var HDFSFileList = {};
 
 // Startup settings
+log4js.configure({
+    appenders: {
+        datefileout: {
+            type: "dateFile",
+            filename: "log/run.log",
+            pattern: "-yyyy-MM-dd"
+        },
+        consoleout: { type: "console" },
+    },
+    categories: {
+        default: { appenders: ["datefileout", "consoleout"], level: "debug" },
+        anything: { appenders: ["consoleout"], level: "debug" }
+    }
+});
+var logger = log4js.getLogger()
+
 fs.readFile('./scala_templates/stable/begin.tp', 'utf-8', (err, data) => {
-    if (err) return console.log(err.message);
+    if (err) return logger.error(err.message);
     templateBegin = data;
+    logger.info("Begin template loaded")
 })
 fs.readFile('./scala_templates/stable/end.tp', 'utf-8', (err, data) => {
-    if (err) return console.log(err.message);
+    if (err) return logger.error(err.message);
     templateEnd = data;
+    logger.info("End template loaded")
 })
 
 // Functions
@@ -76,6 +95,7 @@ async function loadHDFSFileList() {
 
 function refreshHDFSFileList() {
     loadHDFSFileList()
+    logger.info("HDFS file list refreshed")
     setTimeout(refreshHDFSFileList, 1000 * 1800)
 }
 
@@ -85,7 +105,7 @@ function GenNonDuplicateID(randomLength) {
 
 // Routers
 app.get('/getHDFSTableList', async (req, res) => {
-    console.log("Call /getHDFSTablesList");
+    logger.info("Call /getHDFSTablesList");
     // shellRes = shell.exec("hdfs dfs -ls /patent/uspto/csv")
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send({
@@ -94,20 +114,20 @@ app.get('/getHDFSTableList', async (req, res) => {
 })
 
 app.get('/getTemplate', (req, res) => {
-    console.log("Call /getTemplate");
+    logger.info("Call /getTemplate");
     fullFilename = './scala_templates/' + req.query.filename + '.scala'
     fs.readFile(fullFilename, 'utf-8', (err, data) => {
-        if (err) return console.log(err.message);
+        if (err) return logger.error(err.message);
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.send(data)
-        console.log('Load ' + fullFilename)
+        logger.debug('Load ' + fullFilename)
     })
 })
 
 app.get('/submitTask', async (req, res) => {
-    console.log("Call /submitTask");
+    logger.info("Call /submitTask");
     fullTask = templateBegin + addSpaces(req.query.executeCode) + templateEnd
-    console.log(fullTask)
+    logger.debug(fullTask)
     // await sleep(2000)
     // res.setHeader("Access-Control-Allow-Origin", "*");
     // res.send({
@@ -125,7 +145,7 @@ app.get('/submitTask', async (req, res) => {
     for (const [key, value] of Object.entries(query)) {
         queryRouter += "&" + key + "=" + value
     }
-    console.log("Post " + queryRouter)
+    logger.debug("Post " + queryRouter)
     const response = await axios.post(queryRouter,
         {
             code: fullTask
@@ -135,9 +155,9 @@ app.get('/submitTask', async (req, res) => {
 })
 
 app.get('/runTask', async (req, res) => {
-    console.log("Call /runTask");
+    logger.info("Call /runTask");
     queryID = req.query.queryID
-    console.log(queryID)
+    logger.debug(`queryID: ${queryID}`)
 
     query = {
         className: "ExecObj",
@@ -147,7 +167,7 @@ app.get('/runTask', async (req, res) => {
     for (const [key, value] of Object.entries(query)) {
         queryRouter += "&" + key + "=" + value
     }
-    console.log("Post " + queryRouter)
+    logger.debug("Post " + queryRouter)
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send({ status: true })
 
@@ -159,13 +179,13 @@ app.get('/runTask', async (req, res) => {
     // await sleep(30000)
     // taskList[queryID] = { data: { output: "fake data" }, success: true }
 
-    console.log(queryID + " finished, add to TaskList")
+    logger.info(queryID + " finished, add to TaskList")
 })
 
 app.get('/taskStatus', async (req, res) => {
-    console.log("Call /taskStatus");
+    logger.info("Call /taskStatus");
     queryID = req.query.queryID
-    console.log("taskList: " + Object.keys(taskList))
+    logger.debug("taskList: " + Object.keys(taskList))
 
     res.setHeader("Access-Control-Allow-Origin", "*");
 
@@ -175,7 +195,7 @@ app.get('/taskStatus', async (req, res) => {
             data: taskList[queryID]
         })
         delete taskList[queryID]
-        console.log(queryID + " removed from TaskList")
+        logger.info(queryID + " removed from TaskList")
     }
     else {
         res.send({
@@ -186,24 +206,24 @@ app.get('/taskStatus', async (req, res) => {
 })
 
 app.get('/getTaskData', async (req, res) => {
-    console.log("Call /getTaskData");
+    logger.info("Call /getTaskData");
     const response = await axios.get("http://localhost:19527/patent/publications/query",
         {
             params: { taskID: req.query.taskID }
         });
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(response.data)
-    const csv = csvParser.parse(a)
-    const csvFile = `./task_data/${taskID}.csv`
+    const csv = csvParser.parse(response.data.data)
+    const csvFile = `./task_data/${req.query.taskID}.csv`
     fs.open(csvFile, "w", (err, fd) => {
         if (err) {
-            console.log(err.message);
+            logger.error(err.message);
         } else {
             fs.write(fd, csv, (err, bytes) => {
                 if (err) {
-                    console.log(err.message);
+                    logger.error(err.message);
                 } else {
-                    console.log(bytes + ` bytes written to ${csvFile}`);
+                    logger.debug(bytes + ` bytes written to ${csvFile}`);
                 }
             })
         }
@@ -211,25 +231,24 @@ app.get('/getTaskData', async (req, res) => {
 })
 
 app.get('/downloadTaskData', async (req, res) => {
-    console.log("Call /downloadTaskData");
+    logger.info("Call /downloadTaskData");
     res.setHeader("Access-Control-Allow-Origin", "*");
     let dlFile = `./task_data/${req.query.taskID}.csv`
-    console.log("Request " + dlFile)
+    logger.info("Request " + dlFile)
     res.download(dlFile, function (error) {
-        if (err) {
-            console.log(error)
+        if (error) {
+            logger.error(error)
         }
     })
 })
 
 app.get('/patentSearch', async (req, res) => {
-    console.log("Call /patentSearch");
+    logger.info("Call /patentSearch");
     var SpringServer = "http://localhost:19527/patent/publications/"
     const response = await axios.get(SpringServer + req.query.patentID);
-    console.log(response.data);
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(response.data.data)
 })
 
-app.listen(port, () => { console.log(`node backend listening on port ${port}`) })
+app.listen(port, () => { logger.info(`node backend listening on port ${port}`) })
 setTimeout(refreshHDFSFileList, 0)

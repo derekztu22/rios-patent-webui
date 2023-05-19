@@ -1,7 +1,8 @@
 .DS_Store
 node_modules
 /dist
-
+task_data
+*.log
 
 # local env files
 .env.local

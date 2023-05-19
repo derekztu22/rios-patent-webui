@@ -96,8 +96,7 @@ export default {
             this.taskID = taskID
             var href = r_const.queryDownloadTaskData + `?taskID=${taskID}`
             // var href = "http://localhost:23457/downloadTaskData?taskID=test"
-            var dlButtonHref = document.getElementById("dl").setAttribute("href", href)
-            console.log(dlButtonHref)
+            document.getElementById("dl").setAttribute("href", href)
         },
         async downloadTable() {
             await axios.get(r_const.queryDownloadTaskData,
