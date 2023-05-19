@@ -34,10 +34,44 @@
           </el-submenu>
           <el-submenu index="2">
             <template slot="title"><i class="el-icon-menu" @click="refreshTableList"></i>RIOS Database</template>
-            <el-menu-item v-for="(item) in tableList" :key="item.tableName">
-              {{ item.tableName }}
-              <i class="el-icon-copy-document" @click="copyFilePath(item.tableHDFSPath)"></i>
-            </el-menu-item>
+            <el-submenu index="2-1">
+              <template slot="title">USPTO</template>
+              <el-submenu index="2-1-1">
+                <template slot="title">Granted Patents</template>
+                <el-menu-item v-for="(item) in tableList['grantedPatents']['tables']" :key="item.tableName">
+                  {{ item.tableName }}
+                  <i class="el-icon-copy-document" @click="copyFilePath(item.tableHDFSPath)"></i>
+                </el-menu-item>
+              </el-submenu>
+              <el-submenu index="2-1-2">
+                <template slot="title">Brief Summary Text</template>
+                <el-menu-item v-for="(item) in tableList['briefSum']['tables']" :key="item.tableName">
+                  {{ item.tableName }}
+                  <i class="el-icon-copy-document" @click="copyFilePath(item.tableHDFSPath)"></i>
+                </el-menu-item>
+              </el-submenu>
+              <el-submenu index="2-1-3">
+                <template slot="title">Claim</template>
+                <el-menu-item v-for="(item) in tableList['claim']['tables']" :key="item.tableName">
+                  {{ item.tableName }}
+                  <i class="el-icon-copy-document" @click="copyFilePath(item.tableHDFSPath)"></i>
+                </el-menu-item>
+              </el-submenu>
+              <el-submenu index="2-1-4">
+                <template slot="title">Detail Description Text</template>
+                <el-menu-item v-for="(item) in tableList['detailDesc']['tables']" :key="item.tableName">
+                  {{ item.tableName }}
+                  <i class="el-icon-copy-document" @click="copyFilePath(item.tableHDFSPath)"></i>
+                </el-menu-item>
+              </el-submenu>
+              <el-submenu index="2-1-5">
+                <template slot="title">Drawing Description Text</template>
+                <el-menu-item v-for="(item) in tableList['drawDesc']['tables']" :key="item.tableName">
+                  {{ item.tableName }}
+                  <i class="el-icon-copy-document" @click="copyFilePath(item.tableHDFSPath)"></i>
+                </el-menu-item>
+              </el-submenu>
+            </el-submenu>
           </el-submenu>
         </el-menu>
       </el-aside>
@@ -114,10 +148,28 @@ export default {
       //   },
       // ],
       tabIndex: 1,
-      tableList: [
-        // {tableName:"uspto"},
-        // {tableName:"gpatent"},
-      ]
+      tableList: {
+        "grantedPatents": {
+          "queryName": "csv",
+          "tables": []
+        },
+        "briefSum": {
+          "queryName": "g_brf_sum_text",
+          "tables": []
+        },
+        "claim": {
+          "queryName": "g_claims",
+          "tables": []
+        },
+        "detailDesc": {
+          "queryName": "g_detail_desc_text",
+          "tables": []
+        },
+        "drawDesc": {
+          "queryName": "g_draw_desc_text",
+          "tables": []
+        }
+      }
     }
   },
   methods: {
@@ -166,19 +218,24 @@ export default {
     setOutput(serverOutput) {
       this.$refs.responseTab.setResponse(serverOutput)
     },
-    setTable(serverTable) {
-      this.$refs.resultTab.setTable(serverTable)
+    setTable(serverTable, taskID) {
+      this.$refs.resultTab.setTable(serverTable,taskID)
     },
     setResponseLoading() {
       this.$refs.responseTab.setLoading()
     },
     async refreshTableList() {
-      const response = await axios.get(r_const.queryLoadHDFSList);
-      response.data.tableList.forEach(
-        (item) => {
-          this.tableList.push(item)
-        }
-      )
+      for (const [key, value] of Object.entries(this.tableList)) {
+        const response = await axios.get(r_const.queryLoadHDFSList,
+          {
+            params: { tableType: value["queryName"] }
+          });
+        response.data.tableList.forEach(
+          (item) => {
+            this.tableList[key]["tables"].push(item)
+          }
+        )
+      }
     },
     copyFilePath(tablePath) {
       var input = document.createElement('input')

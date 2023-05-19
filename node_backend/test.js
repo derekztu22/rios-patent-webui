@@ -1,30 +1,20 @@
-// tableJson=[{"label":"1","col":"asf"}, {"label":"2","col":"2143"}, {"label":"3","col":"rfds"}]
-// headData=[]
-// tableData=[]
-// for (const [key, value] of Object.entries(tableJson[0])) {
-//     headData.push({tableTitle:key})
-// }
-// tableJson.forEach(element => {
-//     row=[]
-//     for (const [key, value] of Object.entries(element)) {
-//         row.push({value:value})
-//     }
-//     tableData.push(row)
-// });
+const { Parser } = require('@json2csv/plainjs')
+const fs = require("fs");
 
-// console.log(headData)
-// console.log(tableData)
-
-
-function GenNonDuplicateID(randomLength) {
-    return Number(Math.random().toString().substr(2, randomLength) + Date.now()).toString(36)
-}
-var a={}
-var ID=GenNonDuplicateID()
-console.log(ID)
-console.log("a: "+JSON.stringify(a))
-a[ID]={status:true}
-console.log("a: "+a)
-console.log("a: "+JSON.stringify(a))
-delete a[ID]
-console.log(a)
+a = [{ "_1": "abc", "_2": 2 }, { "_1": "efg", "_2": 4 }]
+const parser = new Parser()
+const csv = parser.parse(a)
+console.log(csv)
+fs.open("./task_data/test.csv", "w", (err, fd) => {
+    if (err) {
+        console.log(err.message);
+    } else {
+        fs.write(fd, csv, (err, bytes) => {
+            if (err) {
+                console.log(err.message);
+            } else {
+                console.log(bytes + ' bytes written');
+            }
+        })
+    }
+})

@@ -2,14 +2,21 @@ const express = require('express')
 const fs = require('fs')
 const axios = require('axios')
 const shell = require('shelljs');
+const { setTimeout } = require('core-js');
+const { Parser } = require('@json2csv/plainjs')
 
-const app = express()
-const port = 23457
-
+// Consts
+const app = express();
+const port = 23457;
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
-var taskList = {};
+const csvParser = new Parser()
 
-var templateBegin, templateEnd
+// Global var
+var taskList = {};
+var templateBegin, templateEnd;
+var HDFSFileList = {};
+
+// Startup settings
 fs.readFile('./scala_templates/stable/begin.tp', 'utf-8', (err, data) => {
     if (err) return console.log(err.message);
     templateBegin = data;
@@ -19,6 +26,7 @@ fs.readFile('./scala_templates/stable/end.tp', 'utf-8', (err, data) => {
     templateEnd = data;
 })
 
+// Functions
 function parseFileNames(inputString) {
     var lines = inputString.trim().split('\n');
     var filenames = [];
@@ -51,12 +59,37 @@ function addSpaces(inputString) {
     return outputString;
 }
 
+async function loadHDFSFileList() {
+    var fileList = {
+        "csv": [],
+        "g_brf_sum_text": [],
+        "g_claims": [],
+        "g_detail_desc_text": [],
+        "g_draw_desc_text": []
+    }
+    for (const [key, value] of Object.entries(fileList)) {
+        var shellRes = await shell.exec(`hdfs dfs -ls /patent/uspto/${key}`)
+        fileList[key] = parseFileNames(shellRes)
+    }
+    HDFSFileList = fileList;
+}
+
+function refreshHDFSFileList() {
+    loadHDFSFileList()
+    setTimeout(refreshHDFSFileList, 1000 * 1800)
+}
+
+function GenNonDuplicateID(randomLength) {
+    return Number(Math.random().toString().substr(2, randomLength) + Date.now()).toString(36)
+}
+
+// Routers
 app.get('/getHDFSTableList', async (req, res) => {
     console.log("Call /getHDFSTablesList");
-    shellRes = shell.exec("hdfs dfs -ls /patent/uspto/csv")
+    // shellRes = shell.exec("hdfs dfs -ls /patent/uspto/csv")
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send({
-        tableList: parseFileNames(shellRes)
+        tableList: HDFSFileList[req.query.tableType]
     })
 })
 
@@ -68,46 +101,6 @@ app.get('/getTemplate', (req, res) => {
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.send(data)
         console.log('Load ' + fullFilename)
-    })
-})
-
-app.get('/getTable', (req, res) => {
-    console.log("Call /getTable");
-    headData = [
-        { tableTitle: "id" },
-        { tableTitle: "姓名" },
-        { tableTitle: "性别" },
-        { tableTitle: "年龄" },
-        { tableTitle: "地址" },
-        { tableTitle: "联系方式" },
-    ];
-    tableData = [
-        [{ value: "id20200719" },
-        { value: "小明" },
-        { value: "男" },
-        { value: "20" },
-        { value: "北京昌平" },
-        { value: "18812349874" },
-        ],
-        [{ value: "id20220102" },
-        { value: "小红" },
-        { value: "女" },
-        { value: "18" },
-        { value: "北京海淀" },
-        { value: "18856432547" },
-        ],
-        [{ value: "id20220717" },
-        { value: "小蓝" },
-        { value: "未知" },
-        { value: "21" },
-        { value: "北京朝阳" },
-        { value: "16634219856" },
-        ],
-    ];
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.send({
-        headData: headData,
-        tableData: tableData
     })
 })
 
@@ -165,7 +158,7 @@ app.get('/runTask', async (req, res) => {
 
     // await sleep(30000)
     // taskList[queryID] = { data: { output: "fake data" }, success: true }
-    
+
     console.log(queryID + " finished, add to TaskList")
 })
 
@@ -200,6 +193,33 @@ app.get('/getTaskData', async (req, res) => {
         });
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(response.data)
+    const csv = csvParser.parse(a)
+    const csvFile = `./task_data/${taskID}.csv`
+    fs.open(csvFile, "w", (err, fd) => {
+        if (err) {
+            console.log(err.message);
+        } else {
+            fs.write(fd, csv, (err, bytes) => {
+                if (err) {
+                    console.log(err.message);
+                } else {
+                    console.log(bytes + ` bytes written to ${csvFile}`);
+                }
+            })
+        }
+    })
+})
+
+app.get('/downloadTaskData', async (req, res) => {
+    console.log("Call /downloadTaskData");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    let dlFile = `./task_data/${req.query.taskID}.csv`
+    console.log("Request " + dlFile)
+    res.download(dlFile, function (error) {
+        if (err) {
+            console.log(error)
+        }
+    })
 })
 
 app.get('/patentSearch', async (req, res) => {
@@ -212,3 +232,4 @@ app.get('/patentSearch', async (req, res) => {
 })
 
 app.listen(port, () => { console.log(`node backend listening on port ${port}`) })
+setTimeout(refreshHDFSFileList, 0)

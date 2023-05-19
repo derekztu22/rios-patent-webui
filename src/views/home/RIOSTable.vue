@@ -1,5 +1,12 @@
 <template>
     <div id="tableContainer">
+        <el-form :inline="true" ref="form">
+            <el-form-item>
+                <a href="http://localhost:23457/downloadTaskData?taskID=test" id="dl">
+                    <el-button type="success" icon="el-icon-download" circle size="mini"></el-button>
+                </a>
+            </el-form-item>
+        </el-form>
         <el-table class="tableBox" :data="tableData" align="center" border style="width: 80vw;" highlight-current-row>
             <el-table-column align="center" v-for="(item, index) in headData" :key="index" :label="item.tableTitle">
                 <template slot-scope="scope">
@@ -11,6 +18,9 @@
 </template>
   
 <script>
+import * as r_const from '@/router/consts'
+import axios from 'axios'
+
 export default {
     name: "RIOSTable",
     data() {
@@ -47,11 +57,12 @@ export default {
                 // { value: "16634219856" },
                 // ],
             ],
+            taskID: null
         };
     },
     mounted() { },
     methods: {
-        setTable(tableVar) {
+        setTable(tableVar, taskID) {
             // console.log(tableVar)
             var headData = []
             var tableData = []
@@ -82,6 +93,18 @@ export default {
                     this.tableData.push(item)
                 }
             )
+            this.taskID = taskID
+            var href = r_const.queryDownloadTaskData + `?taskID=${taskID}`
+            // var href = "http://localhost:23457/downloadTaskData?taskID=test"
+            var dlButtonHref = document.getElementById("dl").setAttribute("href", href)
+            console.log(dlButtonHref)
+        },
+        async downloadTable() {
+            await axios.get(r_const.queryDownloadTaskData,
+                {
+                    // params: { taskID: this.taskID }
+                    params: { taskID: "test" }
+                });
         }
     },
 };
@@ -97,6 +120,11 @@ export default {
     border-radius: 4px;
     overflow-x: hidden;
     overflow-y: auto;
+}
+
+.el-form {
+    display: flex;
+    justify-content: flex-end;
 }
 </style>
   

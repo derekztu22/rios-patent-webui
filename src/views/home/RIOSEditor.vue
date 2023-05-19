@@ -115,7 +115,7 @@ export default {
             }
         },
         async runTask() {
-            var queryID = utils_func.GenNonDuplicateID()
+            var queryID = utils_func.GenNonDuplicateID(24)
             await axios.get(r_const.queryRunTask,
                 {
                     params: { queryID: queryID }
@@ -160,7 +160,7 @@ export default {
             var serverRes = response.data
             // console.log(serverRes)
             if (serverRes.success) {
-                this.$emit("setTable", serverRes.data)
+                this.$emit("setTable", serverRes.data, this.taskID)
             }
             else {
                 // this.$emit("openNotification", "error", "Server Response", "JSON Parse Failed");
