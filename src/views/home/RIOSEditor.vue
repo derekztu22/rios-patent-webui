@@ -172,7 +172,7 @@ export default {
 </script>
 <style scoped>
 #container {
-    width: 80vw;
+    width: 70vw;
     height: 70vh;
     text-align: left;
 }

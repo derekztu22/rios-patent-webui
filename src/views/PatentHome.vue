@@ -10,7 +10,7 @@
     <el-container>
 
       <el-aside style="background-color: rgb(238, 241, 246);overflow: auto;" class="sidebar">
-        <el-menu :default-openeds="['1']">
+        <el-menu :default-openeds="['1']" id="menu-container">
           <el-submenu index="1">
             <template slot="title"><i class="el-icon-message"></i>RIOS Spark</template>
             <el-submenu index="1-1">
@@ -26,10 +26,13 @@
               <el-menu-item index="1-1-5" @click="loadTemplate('MIPSCPC')">MIPS
                 CPC</el-menu-item>
             </el-submenu>
-            <el-submenu index="1-2">
+            <!-- <el-submenu index="1-2">
               <template slot="title">Algorithm</template>
               <el-menu-item index="1-2-1" @click="goTo()">Recommend System</el-menu-item>
               <el-menu-item index="1-2-2">NLP</el-menu-item>
+            </el-submenu> -->
+            <el-submenu index="1-2">
+              <template slot="title">Query</template>
             </el-submenu>
           </el-submenu>
           <el-submenu index="2">
@@ -219,7 +222,7 @@ export default {
       this.$refs.responseTab.setResponse(serverOutput)
     },
     setTable(serverTable, taskID) {
-      this.$refs.resultTab.setTable(serverTable,taskID)
+      this.$refs.resultTab.setTable(serverTable, taskID)
     },
     setResponseLoading() {
       this.$refs.responseTab.setLoading()
@@ -230,8 +233,10 @@ export default {
           {
             params: { tableType: value["queryName"] }
           });
+        this.tableList[key]["tables"].length = 0
         response.data.tableList.forEach(
           (item) => {
+            item.tableName = item.tableName.substring(2,)
             this.tableList[key]["tables"].push(item)
           }
         )
@@ -255,7 +260,7 @@ export default {
 <style>
 .sidebar {
   width: 300px;
-  height: 80vh
+  height: 80vh;
 }
 
 .block {
@@ -264,5 +269,18 @@ export default {
 
 .rios-header {
   margin: 20px;
+}
+
+.el-aside {
+  display: contents;
+}
+
+.el-menu {
+  min-width: 240px;
+}
+
+#menu-container {
+  max-height: 80vh;
+  overflow: auto;
 }
 </style>

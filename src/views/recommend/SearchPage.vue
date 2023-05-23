@@ -5,7 +5,7 @@
         <img src="./assets/favicon.png" alt="Logo" />
       </div> -->
       <search-box @search="search"></search-box>
-      <today-recommendation-container @search="search"></today-recommendation-container>
+      <!-- <today-recommendation-container @search="search"></today-recommendation-container> -->
     </div>
     <div class="recommendations">
       <div class="recommendation-list">
@@ -19,7 +19,7 @@
 <script>
 import SearchBox from "./components/SearchBox.vue";
 import RecommendationItem from "./components/RecommendationItem.vue";
-import TodayRecommendation from "./components/TodayRecommendation.vue";
+// import TodayRecommendation from "./components/TodayRecommendation.vue";
 import * as r_const from '@/router/consts'
 import axios from 'axios';
 
@@ -28,7 +28,7 @@ export default {
   components: {
     "search-box": SearchBox,
     "recommendation-item": RecommendationItem,
-    "today-recommendation-container": TodayRecommendation
+    // "today-recommendation-container": TodayRecommendation
   },
   data() {
     return {

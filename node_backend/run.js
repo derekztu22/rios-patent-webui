@@ -10,7 +10,6 @@ var log4js = require('log4js')
 const app = express();
 const port = 23457;
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
-const csvParser = new Parser()
 
 // Global var
 var taskList = {};
@@ -128,14 +127,6 @@ app.get('/submitTask', async (req, res) => {
     logger.info("Call /submitTask");
     fullTask = templateBegin + addSpaces(req.query.executeCode) + templateEnd
     logger.debug(fullTask)
-    // await sleep(2000)
-    // res.setHeader("Access-Control-Allow-Origin", "*");
-    // res.send({
-    //     success:true,
-    //     data: {
-    //         taskID:123456
-    //     }
-    // })
 
     query = {
         className: "ExecObj",
@@ -152,6 +143,7 @@ app.get('/submitTask', async (req, res) => {
         });
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(response.data)
+    // logger.debug(response.data)
 })
 
 app.get('/runTask', async (req, res) => {
@@ -175,9 +167,7 @@ app.get('/runTask', async (req, res) => {
     runAxios.defaults.timeout = 1000 * 60 * 10
     const response = await runAxios.post(queryRouter);
     taskList[queryID] = response.data
-
-    // await sleep(30000)
-    // taskList[queryID] = { data: { output: "fake data" }, success: true }
+    logger.debug(response.data)
 
     logger.info(queryID + " finished, add to TaskList")
 })
@@ -213,6 +203,8 @@ app.get('/getTaskData', async (req, res) => {
         });
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(response.data)
+    logger.debug(response.data)
+    const csvParser = new Parser()
     const csv = csvParser.parse(response.data.data)
     const csvFile = `./task_data/${req.query.taskID}.csv`
     fs.open(csvFile, "w", (err, fd) => {
@@ -244,6 +236,7 @@ app.get('/downloadTaskData', async (req, res) => {
 
 app.get('/patentSearch', async (req, res) => {
     logger.info("Call /patentSearch");
+    logger.debug(`Request query ${req.query.patentID}`)
     var SpringServer = "http://localhost:19527/patent/publications/"
     const response = await axios.get(SpringServer + req.query.patentID);
     res.setHeader("Access-Control-Allow-Origin", "*");

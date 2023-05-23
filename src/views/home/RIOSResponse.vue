@@ -24,7 +24,7 @@ export default {
 </script>
 <style>
 #responseSpan {
-    width: 80vw;
+    width: 70vw;
     height: 72vh;
     margin: 0 auto;
     padding: 10px;

@@ -23,8 +23,9 @@ console.log(logger.level)
 var a = [{ "_1": "abc", "_2": 2 }, { "_1": "efg", "_2": 4 }]
 const parser = new Parser()
 const csv = parser.parse(a)
+const file="./task_data/test.csv"
 console.log(csv)
-fs.open("./task_data/test.csv", "w", (err, fd) => {
+fs.open(file, "w", (err, fd) => {
     if (err) {
         logger.error(err.message);
     } else {
@@ -32,7 +33,7 @@ fs.open("./task_data/test.csv", "w", (err, fd) => {
             if (err) {
                 logger.error(err.message);
             } else {
-                logger.debug(bytes + ' bytes written');
+                logger.debug(bytes + ' bytes written ${file}');
             }
         })
     }

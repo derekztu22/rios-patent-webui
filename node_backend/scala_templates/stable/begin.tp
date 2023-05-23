@@ -11,7 +11,6 @@ object ExecObj {
             .setMaster("local[*]")
             .setAppName("WordCount SQL Application")
             .set("spark.driver.memory", "12g")
-            .set("spark.executor.memory", "24g")
 
         val spark = SparkSession.builder().config(config).getOrCreate()
         import spark.implicits._

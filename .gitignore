@@ -3,6 +3,7 @@ node_modules
 /dist
 task_data
 *.log
+*log*
 
 # local env files
 .env.local
