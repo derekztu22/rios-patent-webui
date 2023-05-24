@@ -17,13 +17,13 @@
               <template slot="title">Analyze</template>
               <el-menu-item index="1-1-1" @click="loadTemplate('LoadTable')">Load
                 Table</el-menu-item>
-              <el-menu-item index="1-1-2" @click="loadTemplate('WordCount')">Word
-                Count</el-menu-item>
-              <el-menu-item index="1-1-3" @click="loadTemplate('ARMCPC')">ARM
+              <!-- <el-menu-item index="1-1-2" @click="loadTemplate('WordCount')">Word
+                Count</el-menu-item> -->
+              <el-menu-item index="1-1-3" @click="loadTemplate('ori/ARMCPC')">ARM
                 CPC</el-menu-item>
-              <el-menu-item index="1-1-4" @click="loadTemplate('ARMEXP')">ARM
+              <el-menu-item index="1-1-4" @click="loadTemplate('ori/ARMEXP')">ARM
                 EXP</el-menu-item>
-              <el-menu-item index="1-1-5" @click="loadTemplate('MIPSCPC')">MIPS
+              <el-menu-item index="1-1-5" @click="loadTemplate('ori/MIPSCPC')">MIPS
                 CPC</el-menu-item>
             </el-submenu>
             <!-- <el-submenu index="1-2">
@@ -33,6 +33,14 @@
             </el-submenu> -->
             <el-submenu index="1-2">
               <template slot="title">Query</template>
+              <el-menu-item index="1-2-1" @click="loadTemplate('sql/CPCAssignee')">CPC
+                Assignee</el-menu-item>
+              <el-menu-item index="1-2-2" @click="loadTemplate('sql/ARMCPC_SQL')">
+                ARM CPC</el-menu-item>
+              <el-menu-item index="1-2-3" @click="loadTemplate('sql/ARMEXP_SQL')">
+                ARM EXP</el-menu-item>
+              <el-menu-item index="1-2-4" @click="loadTemplate('sql/IPCCPC_SQL')">
+                IPC CPC</el-menu-item>
             </el-submenu>
           </el-submenu>
           <el-submenu index="2">

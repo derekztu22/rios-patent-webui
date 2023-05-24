@@ -164,7 +164,7 @@ app.get('/runTask', async (req, res) => {
     res.send({ status: true })
 
     runAxios = axios.create()
-    runAxios.defaults.timeout = 1000 * 60 * 10
+    runAxios.defaults.timeout = 1000 * 60 * 30
     const response = await runAxios.post(queryRouter);
     taskList[queryID] = response.data
     logger.debug(response.data)
@@ -203,7 +203,7 @@ app.get('/getTaskData', async (req, res) => {
         });
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(response.data)
-    logger.debug(response.data)
+    logger.debug(response.data.data[0])
     const csvParser = new Parser()
     const csv = csvParser.parse(response.data.data)
     const csvFile = `./task_data/${req.query.taskID}.csv`
