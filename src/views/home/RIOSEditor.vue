@@ -105,7 +105,7 @@ export default {
             var taskData = serverRes.data
             if (taskPkgFlag) {
                 this.$emit("openNotification", "success", "Maven Response", "Package Succeed. Task Executing");
-                this.runTask()
+                this.runTask(taskData.codeID)
                 this.$emit("setResponseLoading")
             }
             else {
@@ -114,11 +114,14 @@ export default {
                 this.$emit("setOutput", taskData.output)
             }
         },
-        async runTask() {
+        async runTask(codeID) {
             var queryID = utils_func.GenNonDuplicateID(24)
             await axios.get(r_const.queryRunTask,
                 {
-                    params: { queryID: queryID }
+                    params: {
+                        queryID: queryID,
+                        codeID: codeID
+                    }
                 });
             this.queryID = queryID
             this.queryTaskStatus()
@@ -128,11 +131,12 @@ export default {
                 {
                     params: { queryID: this.queryID }
                 });
-            var serverRes = response.data
+            var nodeRes = response.data
+            var serverRes = nodeRes.data
             // console.log(serverRes)
-            if (serverRes.status) {
-                var taskData = serverRes.data.data
-                var taskExecFlag = serverRes.data.success
+            if (nodeRes.status) {
+                var taskData = serverRes.data
+                var taskExecFlag = serverRes.success
                 if (taskExecFlag) {
                     this.$emit("openNotification", "success", "Server Response", "Task Executed Successfully");
                     this.$emit("setOutput", taskData.output)

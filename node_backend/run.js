@@ -149,16 +149,20 @@ app.get('/submitTask', async (req, res) => {
 app.get('/runTask', async (req, res) => {
     logger.info("Call /runTask");
     queryID = req.query.queryID
+    codeID = req.query.codeID
     logger.debug(`queryID: ${queryID}`)
+    logger.debug(`codeID: ${codeID}`)
 
-    query = {
-        className: "ExecObj",
-        packageName: "org.rioslab.spark.core.exec"
-    }
+    // query = {
+    //     className: "ExecObj",
+    //     packageName: "org.rioslab.spark.core.exec"
+    // }
+    // queryRouter = "http://localhost:19527/patent/publications/run?"
+    // for (const [key, value] of Object.entries(query)) {
+    //     queryRouter += "&" + key + "=" + value
+    // }
     queryRouter = "http://localhost:19527/patent/publications/run?"
-    for (const [key, value] of Object.entries(query)) {
-        queryRouter += "&" + key + "=" + value
-    }
+    queryRouter += "codeID" + "=" + codeID
     logger.debug("Post " + queryRouter)
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send({ status: true })
