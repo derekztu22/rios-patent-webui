@@ -4,6 +4,7 @@ node_modules
 task_data
 *.log
 *log*
+test
 
 # local env files
 .env.local
