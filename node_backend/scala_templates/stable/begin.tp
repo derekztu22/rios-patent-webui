@@ -8,9 +8,7 @@ import org.rioslab.spark.core.util.CacheUtil
 object ExecObj {
     def run(args: Array[String]): String = {
         val config = new SparkConf()
-            .setMaster("local[*]")
             .setAppName("WordCount SQL Application")
-            .set("spark.driver.memory", "12g")
 
         val spark = SparkSession.builder().config(config).getOrCreate()
         import spark.implicits._
