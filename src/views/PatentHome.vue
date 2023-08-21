@@ -94,6 +94,9 @@
             <r-editor ref="childEditor" @openNotification="openNotification" @setOutput="setOutput"
               @setResponseLoading="setResponseLoading" @setTable="setTable"></r-editor>
           </el-tab-pane>
+          <el-tab-pane label="RIOS SQLChat" name="sqlgen">
+            <r-sqlgen ref="sqlGenTab"></r-sqlgen>
+          </el-tab-pane>
           <el-tab-pane label="Spark Response" name="response">
             <r-response ref="responseTab"></r-response>
           </el-tab-pane>
@@ -121,8 +124,9 @@
 import RIOSEditor from './home/RIOSEditor.vue';
 import RIOSTable from './home/RIOSTable.vue';
 import RIOSResponse from './home/RIOSResponse.vue';
-import * as r_const from '@/router/consts'
 import SearchPage from './recommend/SearchPage.vue';
+import SQLGenPage from './home/RIOSText2sql.vue'
+import * as r_const from '@/router/consts'
 import axios from 'axios';
 
 export default {
@@ -130,7 +134,8 @@ export default {
     "r-editor": RIOSEditor,
     "r-table": RIOSTable,
     "r-response": RIOSResponse,
-    "r-search": SearchPage
+    "r-search": SearchPage,
+    'r-sqlgen': SQLGenPage
   },
   data() {
     return {

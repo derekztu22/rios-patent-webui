@@ -16,6 +16,8 @@ var taskList = {};
 var templateBegin, templateEnd;
 var HDFSFileList = {};
 
+var llmResposeList = {};
+
 // Startup settings
 log4js.configure({
     appenders: {
@@ -246,6 +248,54 @@ app.get('/patentSearch', async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(response.data.data)
 })
+
+// LLM sth.
+app.get('/postLLMChat', async (req, res) => {
+    logger.info("Call /postLLMChat");
+    var llmServer = "http://macs.nekololi.cn:8000/v1/chat/completions"
+    // payload = {
+    //     "max_tokens": 4096,
+    //     "messages": [
+    //         {
+    //             "content": "You are a text-to-SQL generator, and your main goal is to assist users to convert the input text into correct SQL statements as much as possible.\nInput:\nTable 1: g_assignee_disambiguated\nField 1: patent_id(ID of patent), Field 2: assignee_organization(Organization ofpatent's assignee)\nTable 2: g_patent\nField 1: patent_id(ID of patent), Field 2: patent_date(Date of patent certification)\nTable 3: g_cpc_current\nField 1: patent_id(ID of patent), Field 2: cpc_group(The CPC group to which the patent belongs)\nTable 4: g_ipc_at_issue\nField 1: patent_id(ID of patent), Field 2: ipc_class(The IPC class to which the patent belongs)\n",
+    //             "role": "system"
+    //         },
+    //         {
+    //             "content": "How many patents per year have a CPC group of A01B3/34 from the Intel organization?",
+    //             "role": "user"
+    //         }
+    //     ]
+    // }
+    logger.debug(`llm payload ${JSON.stringify(req.query.llmPayload)}`)
+    queryID = req.query.queryID
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send({ status: true })
+    const response = await axios.post(llmServer, req.query.llmPayload);
+    llmResposeList[queryID] = response.data
+})
+
+app.get('/getLLMChatStatus', async (req, res) => {
+    logger.info("Call /getLLMChatStatus");
+    logger.debug("llmResposeList: " + Object.keys(llmResposeList))
+    queryID = req.query.queryID
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    if (queryID in llmResposeList) {
+        res.send({
+            status: true,
+            data: llmResposeList[queryID]
+        })
+        delete llmResposeList[queryID]
+        logger.info(queryID + " removed from llmResposeList")
+    }
+    else {
+        res.send({
+            status: false,
+            data: null
+        })
+    }
+})
+
+
 
 app.listen(port, () => { logger.info(`node backend listening on port ${port}`) })
 setTimeout(refreshHDFSFileList, 0)

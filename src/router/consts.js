@@ -6,6 +6,8 @@ export const queryTaskStatus = "http://localhost:23457/taskStatus";
 export const queryGetTaskData = "http://localhost:23457/getTaskData";
 export const queryDownloadTaskData = "http://localhost:23457/downloadTaskData";
 export const querySearchPatent = "http://localhost:23457/patentSearch";
+export const queryPostLLMChat = "http://localhost:23457/postLLMChat";
+export const queryLLMChatStatus = "http://localhost:23457/getLLMChatStatus";
 
 export const queryTaskStatusGap = 5000;
 
