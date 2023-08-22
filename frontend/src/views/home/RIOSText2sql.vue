@@ -1,17 +1,29 @@
 <template>
     <div class="sql-gen-page">
-        <el-row :gutter="20">
-            <el-col :span="23">
-                <el-input type="textarea" placeholder="Input text" v-model="sqlgen" @keyup.enter.native="sqlGen">
-                </el-input>
-            </el-col>
-            <el-col :span="1">
-                <el-button type="success" icon="el-icon-check" circle size="mini" @click="sqlGen"
-                    id="submitBtn"></el-button>
-            </el-col>
-        </el-row>
-        <div v-loading="loading">
-            <textarea id="sqlGenResponse" readonly></textarea>
+        <el-form :inline="true" ref="form">
+            <el-form-item>
+                <el-select v-model="model" placeholder="Model">
+                    <el-option v-for="item in modelOption" :key="item.value" :label="item.label" :value="item.value">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="success" icon="el-icon-chat-dot-round" @click="sqlGen"
+                    id="submitBtn">Gen SQL</el-button>
+                <el-button type="primary" icon="el-icon-upload" @click="hiveExec"
+                    id="submitBtn">Run SQL</el-button>
+            </el-form-item>
+        </el-form>
+        <div>
+            <el-input class="userInput" type="textarea" placeholder="Input text" v-model="sqlgen"
+                @keyup.enter.native="sqlGen">
+            </el-input>
+        </div>
+        <div v-loading="sqlLoading">
+            <textarea class="GenResponse" id="sqlGenResponse"></textarea>
+        </div>
+        <div v-loading="hiveLoading">
+            <textarea class="GenResponse" id="hiveResponse" readonly></textarea>
         </div>
     </div>
 </template>
@@ -25,57 +37,101 @@ export default {
     name: "SQLGenPage",
     data() {
         return {
+            modelOption: [
+                {
+                    value: 'llama2-7b-tuned',
+                    label: 'llama2-7b-tuned'
+                },
+                {
+                    value: 'llama2-13b-tuned',
+                    label: 'llama2-13b-tuned'
+                },
+                {
+                    value: 'llama-65b',
+                    label: 'llama-65b'
+                }
+            ],
+            model: 'llama2-13b-tuned',
             sqlgen: '',
-            loading: false,
-            queryID: 0
+            sqlLoading: false,
+            hiveLoading: false,
+            llmQueryID: 0,
+            hiveQueryID: 0
         };
     },
     methods: {
         async sqlGen() {
-            var queryID = utils_func.GenNonDuplicateID(24)
-            this.queryID = queryID
-            this.loading = true
-            let sqlGenPayload = {
-                "max_tokens": 4096,
-                "messages": [
-                    {
-                        "content": "You are a text-to-SQL generator, and your main goal is to assist users to convert the input text into correct SQL statements as much as possible.\nInput:\nTable 1: g_assignee_disambiguated\nField 1: patent_id(ID of patent), Field 2: assignee_organization(Organization ofpatent's assignee)\nTable 2: g_patent\nField 1: patent_id(ID of patent), Field 2: patent_date(Date of patent certification)\nTable 3: g_cpc_current\nField 1: patent_id(ID of patent), Field 2: cpc_group(The CPC group to which the patent belongs)\nTable 4: g_ipc_at_issue\nField 1: patent_id(ID of patent), Field 2: ipc_class(The IPC class to which the patent belongs)\nYou should directly give executable SQL statements without adding explanations.",
-                        "role": "system"
-                    },
-                    {
-                        "content": this.sqlgen,
-                        "role": "user"
-                    }
-                ]
-            }
-            await axios.get(r_const.queryPostLLMChat,
+            this.llmQueryID = utils_func.GenNonDuplicateID(24)
+            this.sqlLoading = true
+            const response=await axios.get(r_const.queryPostLLMChat,
                 {
                     params: {
-                        queryID: queryID,
-                        llmPayload: sqlGenPayload
+                        queryID: this.llmQueryID,
+                        model: this.model,
+                        content: this.sqlgen
                     }
                 });
-            this.querySQLGenStatus()
+            if(response.data.status) {
+                this.querySQLGenStatus()
+            }
+            else {
+                this.sqlLoading = false
+                let sqlGenResponse = document.getElementById("sqlGenResponse")
+                sqlGenResponse.value = response.data.reason
+            }
         },
 
         async querySQLGenStatus() {
             const response = await axios.get(r_const.queryLLMChatStatus,
                 {
                     params: {
-                        queryID: this.queryID,
+                        queryID: this.llmQueryID,
+                        model: this.model,
+                    }
+                });
+            var nodeRes = response.data
+            if (nodeRes.status) {
+                this.sqlLoading = false
+                let sqlGenResponse = document.getElementById("sqlGenResponse")
+                sqlGenResponse.value = nodeRes.data
+            }
+            else {
+                setTimeout(this.querySQLGenStatus, r_const.queryTaskStatusGap)
+            }
+        },
+
+        async hiveExec() {
+            this.hiveQueryID = utils_func.GenNonDuplicateID(24)
+            this.hiveLoading = true
+            let sqlGenResponse = document.getElementById("sqlGenResponse")
+            await axios.get(r_const.queryExecHive,
+                {
+                    params: {
+                        queryID: this.hiveQueryID,
+                        content: sqlGenResponse.value
+                    }
+                });
+            this.queryHiveExecStatus()
+        },
+
+        async queryHiveExecStatus() {
+            const response = await axios.get(r_const.queryHiveExecStatus,
+                {
+                    params: {
+                        queryID: this.hiveQueryID,
                     }
                 });
             var nodeRes = response.data
             var serverRes = nodeRes.data
             if (nodeRes.status) {
-                this.loading = false
-                let sqlGenResponse = document.getElementById("sqlGenResponse")
-                sqlGenResponse.innerHTML = serverRes.choices[0].message.content
+                this.hiveLoading = false
+                let hiveResponse = document.getElementById("hiveResponse")
+                hiveResponse.value = serverRes
             }
             else {
-                setTimeout(this.querySQLGenStatus, r_const.queryTaskStatusGap)
+                setTimeout(this.queryHiveExecStatus, r_const.queryTaskStatusGap)
             }
-        }
+        },
     },
 };
 </script>
@@ -94,9 +150,9 @@ export default {
     border-radius: 5px;
 }
 
-#sqlGenResponse {
+.userInput {
     width: 70vw;
-    height: 60vh;
+    height: 6vh;
     margin: 0 auto;
     padding: 10px;
     text-align: left;
@@ -105,18 +161,23 @@ export default {
     overflow-y: auto;
 }
 
-.el-row {
-    width: 73vw;
-    margin-bottom: 20px;
+.GenResponse {
+    width: 70vw;
+    height: 28vh;
+    margin: 0 auto;
+    padding: 10px;
+    text-align: left;
+    border-radius: 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
-.el-col {
-    height: 5vh;
+.el-form {
+    margin-top: 10px;
 }
-
-#submitBtn {
-    position: absolute;
-    top: 25%;
+.el-form-item {
+    margin-bottom: 0;
+    margin-left: 10px;
 }
 </style>
   

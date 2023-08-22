@@ -2,9 +2,11 @@
 node_modules
 /dist
 task_data
-*.log
-*log*
+*.log*
 test
+
+# backend temp files
+backend/temp
 
 # local env files
 .env.local
