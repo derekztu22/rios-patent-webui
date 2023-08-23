@@ -1,11 +1,8 @@
 const { setTimeout } = require('core-js');
 const fs = require('fs')
-// const shell = require('shelljs');
 const { promisify } = require('util');
-const exec = promisify(require('child_process').exec)
-
 const logger = require('./log')
-const global = require('./global')
+const exec = promisify(require('child_process').exec)
 
 var templateBegin, templateEnd;
 var HDFSFileList = {};
@@ -93,13 +90,15 @@ function getTemplateContext() {
     }
 }
 
-function loadTemplateFromDisk(filename) {
+async function loadTemplateFromDisk(filename) {
     fullFilename = './scala_templates/' + filename + '.scala'
     logger.info(`Request load template ${fullFilename}`)
-    fs.readFile(fullFilename, 'utf-8', (err, data) => {
-        if (err) return logger.error(err.message);
-        return data
-    })
+    try {
+        return fs.readFileSync(fullFilename, 'utf-8')
+    }
+    catch (e) {
+        logger.error(e)
+    }
 }
 
 function pollCheck(queryID, taskList, taskName) {
@@ -120,104 +119,13 @@ function pollCheck(queryID, taskList, taskName) {
     return result
 }
 
-function genLLMBackendParams(params) {
-    logger.info(params)
-    if (params.model == "llama-65b") {
-        llamaPayload = {
-            "max_tokens": 4096,
-            "messages": [
-                {
-                    "content": "You are a text-to-SQL generator, and your main goal is to assist users to convert the input text into correct SQL statements as much as possible.\nInput:\nTable 1: g_assignee_disambiguated\nField 1: patent_id(ID of patent), Field 2: assignee_organization(Organization ofpatent's assignee)\nTable 2: g_patent\nField 1: patent_id(ID of patent), Field 2: patent_date(Date of patent certification)\nTable 3: g_cpc_current\nField 1: patent_id(ID of patent), Field 2: cpc_group(The CPC group to which the patent belongs)\nTable 4: g_ipc_at_issue\nField 1: patent_id(ID of patent), Field 2: ipc_class(The IPC class to which the patent belongs)\nYou should directly give executable SQL statements without adding explanations.",
-                    "role": "system"
-                },
-                {
-                    "content": params.content,
-                    "role": "user"
-                }
-            ]
-        }
-        method = "post"
-        llamaServer = global.llmChatPostRouter1
-    }
-    else if (params.model == "llama2-13b-tuned") {
-        llamaPayload = {}
-        method = "get"
-        llamaServer = global.llmChatPostRouter2 + params.content.split(" ").join("%20")
-    }
-    else {
-        return {
-            status: false,
-            reason: 'No such model.'
-        }
-    }
-    return {
-        status: true,
-        server: llamaServer,
-        method: method,
-        payload: llamaPayload
-    }
-}
-
-function parseLLMResponse(params, response) {
-    logger.debug(params)
-    if (params.model == "llama-65b") {
-        return response.data.choices[0].message.content
-    }
-    else if (params.model == "llama2-13b-tuned") {
-        return response.data.sql_query
-    }
-}
-
-function execSingleSQL(sql) {
-    var res = shell.exec(`hive -e {}`)
-}
-
-async function execSQLOnHiveFromFile(content) {
-    filename = `./temp/HiveExec/${GenNonDuplicateID(16)}.hive`
-    hiveScript = `use patent;\n${content};\nexit;\n`
-    fs.open(filename, "w", (err, fd) => {
-        if (err) {
-            logger.error(err.message);
-        } else {
-            fs.write(fd, hiveScript, (err, bytes) => {
-                if (err) {
-                    logger.error(err.message);
-                } else {
-                    logger.debug(bytes + ` bytes written to ${filename}`);
-                }
-            })
-        }
-    })
-    let code, stdout, stderr;
-    try {
-        ({ stdout, stderr } = await exec(`hive -f ${filename}`));
-    } catch (e) {
-        ({ code, stdout, stderr } = e);
-    }
-
-    if (code) {
-        logger.debug(code)
-        logger.debug(stderr)
-        return stderr.trim()
-    }
-    return stdout.trim()
-}
 
 setTimeout(refreshHDFSFileList, 0)
 
 module.exports = {
-    sleep,
-    GenNonDuplicateID,
-    parseFileNames,
-    addSpaces,
-    loadHDFSFileList,
     getHDFSFileList,
-    refreshHDFSFileList,
     getTemplateContext,
     loadTemplateFromDisk,
     pollCheck,
-    genLLMBackendParams,
-    parseLLMResponse,
-    execSingleSQL,
-    execSQLOnHiveFromFile
+    GenNonDuplicateID
 }

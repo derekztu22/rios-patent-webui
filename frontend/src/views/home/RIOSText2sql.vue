@@ -8,10 +8,9 @@
                 </el-select>
             </el-form-item>
             <el-form-item>
-                <el-button type="success" icon="el-icon-chat-dot-round" @click="sqlGen"
-                    id="submitBtn">Gen SQL</el-button>
-                <el-button type="primary" icon="el-icon-upload" @click="hiveExec"
-                    id="submitBtn">Run SQL</el-button>
+                <el-button type="primary" icon="el-icon-chat-dot-round" @click="sqlGen" id="submitBtn">Gen SQL</el-button>
+                <el-button type="primary" icon="el-icon-upload" @click="hiveExec" id="submitBtn">Run SQL</el-button>
+                <el-button type="success" @click="autoRunPhase1" id="submitBtn">Autorun</el-button>
             </el-form-item>
         </el-form>
         <div>
@@ -51,19 +50,20 @@ export default {
                     label: 'llama-65b'
                 }
             ],
-            model: 'llama2-13b-tuned',
+            model: 'llama-65b',
             sqlgen: '',
             sqlLoading: false,
             hiveLoading: false,
             llmQueryID: 0,
-            hiveQueryID: 0
+            hiveQueryID: 0,
+            sqlGenFinished: false
         };
     },
     methods: {
         async sqlGen() {
             this.llmQueryID = utils_func.GenNonDuplicateID(24)
             this.sqlLoading = true
-            const response=await axios.get(r_const.queryPostLLMChat,
+            const response = await axios.get(r_const.queryPostLLMChat,
                 {
                     params: {
                         queryID: this.llmQueryID,
@@ -71,12 +71,14 @@ export default {
                         content: this.sqlgen
                     }
                 });
-            if(response.data.status) {
+            if (response.data.status) {
+                this.$emit("openNotification", "info", "Server Response", "SQL Generating");
                 this.querySQLGenStatus()
             }
             else {
                 this.sqlLoading = false
                 let sqlGenResponse = document.getElementById("sqlGenResponse")
+                this.$emit("openNotification", "error", "Server Response", "Error");
                 sqlGenResponse.value = response.data.reason
             }
         },
@@ -91,9 +93,11 @@ export default {
                 });
             var nodeRes = response.data
             if (nodeRes.status) {
+                this.$emit("openNotification", "success", "Server Response", "SQL OK");
                 this.sqlLoading = false
                 let sqlGenResponse = document.getElementById("sqlGenResponse")
                 sqlGenResponse.value = nodeRes.data
+                this.sqlGenFinished = true
             }
             else {
                 setTimeout(this.querySQLGenStatus, r_const.queryTaskStatusGap)
@@ -111,6 +115,7 @@ export default {
                         content: sqlGenResponse.value
                     }
                 });
+            this.$emit("openNotification", "info", "Server Response", "Hive Running");
             this.queryHiveExecStatus()
         },
 
@@ -122,16 +127,38 @@ export default {
                     }
                 });
             var nodeRes = response.data
-            var serverRes = nodeRes.data
+            var hiveRes = nodeRes.data
             if (nodeRes.status) {
+                if (hiveRes.status) {
+                    this.$emit("openNotification", "success", "Server Response", "Finished");
+                    this.$emit("setTable", hiveRes.sparkLikeJson, this.hiveQueryID)
+                }
+                else {
+                    this.$emit("openNotification", "error", "Server Response", `Error Code ${hiveRes.code}`);
+                }
                 this.hiveLoading = false
                 let hiveResponse = document.getElementById("hiveResponse")
-                hiveResponse.value = serverRes
+                hiveResponse.value = hiveRes.content
+                this.sqlGenFinished = false
             }
             else {
                 setTimeout(this.queryHiveExecStatus, r_const.queryTaskStatusGap)
             }
         },
+
+        async autoRunPhase1() {
+            this.sqlGen()
+            this.autoRunPhase2()
+        },
+
+        async autoRunPhase2() {
+            if (this.sqlGenFinished) {
+                this.hiveExec()
+            }
+            else {
+                setTimeout(this.autoRunPhase2, r_const.queryTaskStatusGap / 10)
+            }
+        }
     },
 };
 </script>
@@ -175,6 +202,7 @@ export default {
 .el-form {
     margin-top: 10px;
 }
+
 .el-form-item {
     margin-bottom: 0;
     margin-left: 10px;

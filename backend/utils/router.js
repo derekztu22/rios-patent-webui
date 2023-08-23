@@ -6,6 +6,8 @@ const { Parser } = require('@json2csv/plainjs')
 const func = require('./func')
 const logger = require('./log')
 const global = require('./global')
+const hive = require('./hiveUtils')
+const llm = require('./llmUtils')
 
 const app = express();
 var taskList = {};
@@ -20,9 +22,9 @@ app.get('/getHDFSTableList', async (req, res) => {
     })
 })
 
-app.get('/getTemplate', (req, res) => {
+app.get('/getTemplate', async (req, res) => {
     logger.info("Call /getTemplate");
-    template = func.loadTemplateFromDisk(req.query.filename)
+    const template = await func.loadTemplateFromDisk(req.query.filename)
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(template)
 })
@@ -111,7 +113,7 @@ app.get('/getTaskData', async (req, res) => {
 app.get('/downloadTaskData', async (req, res) => {
     logger.info("Call /downloadTaskData");
     res.setHeader("Access-Control-Allow-Origin", "*");
-    let dlFile = `./task_data/${req.query.taskID}.csv`
+    let dlFile = `./temp/TaskData/${req.query.taskID}.csv`
     logger.info("Request " + dlFile)
     res.download(dlFile, function (error) {
         if (error) {
@@ -133,7 +135,7 @@ app.get('/patentSearch', async (req, res) => {
 app.get('/postLLMChat', async (req, res) => {
     logger.info("Call /postLLMChat");
     queryID = req.query.queryID
-    llmParams = func.genLLMBackendParams(req.query)
+    llmParams = llm.genLLMBackendParams(req.query)
     res.setHeader("Access-Control-Allow-Origin", "*");
     if (llmParams.status) {
         res.send({ status: true })
@@ -160,7 +162,7 @@ app.get('/getLLMChatStatus', async (req, res) => {
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.send({
             status: checkData.status,
-            data: func.parseLLMResponse(req.query, checkData)
+            data: llm.parseLLMResponse(req.query, checkData)
         })
     }
     else {
@@ -174,7 +176,7 @@ app.get('/execHive', async (req, res) => {
     queryID = req.query.queryID
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send({ status: true })
-    hiveResponse = await func.execSQLOnHiveFromFile(req.query.content)
+    hiveResponse = await hive.execSQLOnHiveFromFile(req)
     hiveResponseList[queryID] = hiveResponse
 })
 
