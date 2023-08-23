@@ -3,8 +3,9 @@ module.exports = {
   devServer: {
     port: 23456,
     allowedHosts: [
-      'rioslab.org', // 允许访问的域名地址，即花生壳内网穿透的地址
-      '.rioslab.org'   // .是二级域名的通配符   
+      'rioslab.org',
+      '.rioslab.org',
+      '.malloc.fun'
     ],
     // proxy: {
     //   '/runTask': {
