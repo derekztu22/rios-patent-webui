@@ -38,16 +38,16 @@ export default {
         return {
             modelOption: [
                 {
-                    value: 'llama2-7b-tuned',
-                    label: 'llama2-7b-tuned'
-                },
-                {
                     value: 'llama2-13b-tuned',
                     label: 'llama2-13b-tuned'
                 },
                 {
                     value: 'llama-65b',
                     label: 'llama-65b'
+                },
+                {
+                    value: 'llama2-70b',
+                    label: 'llama2-70b'
                 }
             ],
             model: 'llama-65b',

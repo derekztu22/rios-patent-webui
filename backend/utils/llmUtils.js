@@ -8,7 +8,7 @@ function genLLMBackendParams(params) {
             "max_tokens": 4096,
             "messages": [
                 {
-                    "content": "You are a text-to-SQL generator, and your main goal is to assist users to convert the input text into correct SQL statements as much as possible.\nInput:\nTable 1: g_assignee_disambiguated\nField 1: patent_id(ID of patent), Field 2: assignee_organization(Organization ofpatent's assignee)\nTable 2: g_patent\nField 1: patent_id(ID of patent), Field 2: patent_date(Date of patent certification)\nTable 3: g_cpc_current\nField 1: patent_id(ID of patent), Field 2: cpc_group(The CPC group to which the patent belongs)\nTable 4: g_ipc_at_issue\nField 1: patent_id(ID of patent), Field 2: ipc_class(The IPC class to which the patent belongs)\nYou should directly give executable SQL statements without adding explanations.",
+                    "content": "You are a text-to-SQL generator, and your main goal is to assist users to convert the input text into correct SQL statements as much as possible.\nInput:\nTable 1: g_assignee_disambiguated\npatent_id, assignee_organization\nTable 2: g_patent\npatent_id, patent_date\nTable 3: g_cpc_current\npatent_id, cpc_group\nTable 4: g_ipc_at_issue\npatent_id, ipc_class\nYou should directly give executable SQL statements without adding explanations.",
                     "role": "system"
                 },
                 {
@@ -18,12 +18,29 @@ function genLLMBackendParams(params) {
             ]
         }
         method = "post"
-        llamaServer = global.llmChatPostRouter1
+        llamaServer = global.llmChatPostRouterllama65
+    }
+    else if (params.model == "llama2-70b") {
+        llamaPayload = {
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "content": "You are a text-to-SQL generator, and your main goal is to assist users to convert the input text into correct SQL statements.",
+                    "role": "system"
+                },
+                {
+                    "content": `The table names and table fields are from the following tables:\nTable 1: g_assignee_disambiguated\npatent_id,assignee_organization\nTable 2: g_patent\npatent_id, patent_date\nTable 3: g_cpc_current\npatent_id, cpc_group\nTable 4: g_ipc_at_issue\npatent_id, ipc_class\nQuestion: ${params.content}\nNote that you should directly give the generated SQL statement without adding any additional explanations and instructions!`,
+                    "role": "user"
+                }
+            ]
+        }
+        method = "post"
+        llamaServer = global.llmChatPostRouterllama2_70
     }
     else if (params.model == "llama2-13b-tuned") {
         llamaPayload = {}
         method = "get"
-        llamaServer = global.llmChatPostRouter2 + params.content.split(" ").join("%20")
+        llamaServer = global.llmChatPostRouterllama13Tuned + params.content.split(" ").join("%20")
     }
     else {
         return {
@@ -42,6 +59,9 @@ function genLLMBackendParams(params) {
 function parseLLMResponse(params, response) {
     logger.debug(params)
     if (params.model == "llama-65b") {
+        return response.data.choices[0].message.content
+    }
+    else if (params.model == "llama2-70b") {
         return response.data.choices[0].message.content
     }
     else if (params.model == "llama2-13b-tuned") {
