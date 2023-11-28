@@ -50,7 +50,7 @@ export default {
                     label: 'llama2-70b'
                 }
             ],
-            model: 'llama-65b',
+            model: 'llama2-13b-tuned',
             sqlgen: '',
             sqlLoading: false,
             hiveLoading: false,

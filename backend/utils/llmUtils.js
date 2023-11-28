@@ -8,7 +8,7 @@ function genLLMBackendParams(params) {
             "max_tokens": 4096,
             "messages": [
                 {
-                    "content": "You are a text-to-SQL generator, and your main goal is to assist users to convert the input text into correct SQL statements as much as possible.\nInput:\nTable 1: g_assignee_disambiguated\npatent_id, assignee_organization\nTable 2: g_patent\npatent_id, patent_date\nTable 3: g_cpc_current\npatent_id, cpc_group\nTable 4: g_ipc_at_issue\npatent_id, ipc_class\nYou should directly give executable SQL statements without adding explanations.",
+                    "content": "You are a SQL generator, and your main goal is to assist users to convert the input text into executable SQL statements. Your language of choice is SQL. Don't explain the code, just generate the code block itself.\nIn the database is one table google_full with these fields:\n```\npublication_number\napplication_number\ncountry_code\nkind_code\napplication_kind\napplication_number_formatted\npct_number\nfamily_id\nspif_publication_number\nspif_application_number\ninventor\nassignee\ngrant_date\npublication_date\nfiling_date\npriority_date\npriority_claim\nprimary_cpc\ncpc\nprimary_ipc\nipc\ncitation\ntitle_localized\nabstract_localized\nclaims_localized\ndescription_localized\nfi\nfterm\nlocarno\nuspc\n```\nBecause the user's input may have incorrect capitalization, you should use like instead of = when matching in the generated SQL.",
                     "role": "system"
                 },
                 {
@@ -25,11 +25,11 @@ function genLLMBackendParams(params) {
             "max_tokens": 4096,
             "messages": [
                 {
-                    "content": "You are a text-to-SQL generator, and your main goal is to assist users to convert the input text into correct SQL statements.",
+                    "content": "You are a SQL generator, and your main goal is to assist users to convert the input text into executable SQL statements. Your language of choice is SQL. Don't explain the code, just generate the code block itself.\nIn the database is one table google_full with these fields:\n```\npublication_number\napplication_number\ncountry_code\nkind_code\napplication_kind\napplication_number_formatted\npct_number\nfamily_id\nspif_publication_number\nspif_application_number\ninventor\nassignee\ngrant_date\npublication_date\nfiling_date\npriority_date\npriority_claim\nprimary_cpc\ncpc\nprimary_ipc\nipc\ncitation\ntitle_localized\nabstract_localized\nclaims_localized\ndescription_localized\nfi\nfterm\nlocarno\nuspc\n```\nBecause the user's input may have incorrect capitalization, you should use like instead of = when matching in the generated SQL.",
                     "role": "system"
                 },
                 {
-                    "content": `The table names and table fields are from the following tables:\nTable 1: g_assignee_disambiguated\npatent_id,assignee_organization\nTable 2: g_patent\npatent_id, patent_date\nTable 3: g_cpc_current\npatent_id, cpc_group\nTable 4: g_ipc_at_issue\npatent_id, ipc_class\nQuestion: ${params.content}\nNote that you should directly give the generated SQL statement without adding any additional explanations and instructions!`,
+                    "content": params.content,
                     "role": "user"
                 }
             ]
@@ -38,9 +38,11 @@ function genLLMBackendParams(params) {
         llamaServer = global.llmChatPostRouterllama2_70
     }
     else if (params.model == "llama2-13b-tuned") {
-        llamaPayload = {}
-        method = "get"
-        llamaServer = global.llmChatPostRouterllama13Tuned + params.content.split(" ").join("%20")
+        llamaPayload = {
+            "nl_question": params.content
+        }
+        method = "post"
+        llamaServer = global.llmChatPostRouterllama13Tuned
     }
     else {
         return {
@@ -58,15 +60,23 @@ function genLLMBackendParams(params) {
 
 function parseLLMResponse(params, response) {
     logger.debug(params)
+    var input
     if (params.model == "llama-65b") {
-        return response.data.choices[0].message.content
+        input = response.data.choices[0].message.content
     }
     else if (params.model == "llama2-70b") {
-        return response.data.choices[0].message.content
+        input = response.data.choices[0].message.content
     }
     else if (params.model == "llama2-13b-tuned") {
-        return response.data.sql_query
+        input = response.data.sql_query
     }
+    var regex = /```sql([\s\S]*?)```/g;
+    var match;
+    if ((match = regex.exec(input)) !== null) {
+        var codeBlock = match[1];
+        return codeBlock
+    }
+    else return input
 }
 
 module.exports = {

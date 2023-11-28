@@ -32,7 +32,7 @@ app.get('/getTemplate', async (req, res) => {
 app.get('/submitTask', async (req, res) => {
     logger.info("Call /submitTask");
     templateContext = func.getTemplateContext()
-    fullTask = templateContext.begin + addSpaces(req.query.executeCode) + templateContext.end
+    fullTask = templateContext.begin + func.addSpaces(req.query.executeCode) + templateContext.end
     logger.debug(fullTask)
 
     query = {
@@ -187,6 +187,21 @@ app.get('/queryHiveExecStatus', async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     checkData = func.pollCheck(queryID, hiveResponseList, "hiveResponseList")
     res.send(checkData)
+})
+
+app.get('/recommend', async (req, res) => {
+    logger.info("Call /recommend");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    patentID = req.query.patentID
+    sequence = req.query.sequence
+    combSize = "2"
+    payload = {
+        "patent_number": patentID,
+        "after_or_before": sequence,
+        "comb_size": combSize
+    }
+    response = await axios.post(global.recommendRouter, payload)
+    res.send(response.data)
 })
 
 module.exports = app

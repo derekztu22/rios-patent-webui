@@ -11,5 +11,5 @@ export const queryLLMChatStatus = "http://rios.malloc.fun:23457/getLLMChatStatus
 export const queryExecHive = "http://rios.malloc.fun:23457/execHive";
 export const queryHiveExecStatus = "http://rios.malloc.fun:23457/queryHiveExecStatus";
 
-export const queryTaskStatusGap = 5000;
+export const queryTaskStatusGap = 1000;
 

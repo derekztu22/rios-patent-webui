@@ -103,9 +103,6 @@
           <el-tab-pane label="Execution Result" name="result">
             <r-table ref="resultTab"></r-table>
           </el-tab-pane>
-          <!-- <el-tab-pane label="RIOS Table" name="table">
-            <r-table ref="tableTab"></r-table>
-          </el-tab-pane> -->
           <el-tab-pane label="RIOS Search" name="search">
             <r-search ref="searchTab"></r-search>
           </el-tab-pane>

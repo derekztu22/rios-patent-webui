@@ -127,5 +127,6 @@ module.exports = {
     getTemplateContext,
     loadTemplateFromDisk,
     pollCheck,
-    GenNonDuplicateID
+    GenNonDuplicateID,
+    addSpaces
 }

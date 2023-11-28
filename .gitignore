@@ -4,6 +4,7 @@ node_modules
 task_data
 *.log*
 test
+*.out
 
 # backend temp files
 backend/temp

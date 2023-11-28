@@ -11,8 +11,8 @@ function execSingleSQL(sql) {
 }
 
 async function execSQLOnHiveFromFile(req) {
-    filename = `./temp/HiveExec/${func.GenNonDuplicateID(16)}.hive`
-    hiveScript = `set hive.cli.print.header=true;\nuse patent;\n${req.query.content};\nexit;\n`
+    filename = `./temp/HiveExec/${func.GenNonDuplicateID(16)}.spk`
+    hiveScript = `use google;\n${req.query.content};\nexit;\n`
     fs.open(filename, "w", (err, fd) => {
         if (err) {
             logger.error(err.message);
@@ -28,7 +28,7 @@ async function execSQLOnHiveFromFile(req) {
     })
     let code, stdout, stderr;
     try {
-        ({ stdout, stderr } = await exec(`hive -f ${filename}`));
+        ({ stdout, stderr } = await exec(`spark-sql --master spark://mn1:6540 -i ${filename}`));
     } catch (e) {
         ({ code, stdout, stderr } = e);
     }
