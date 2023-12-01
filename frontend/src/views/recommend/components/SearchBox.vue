@@ -18,12 +18,15 @@ export default {
   },
   methods: {
     async getRecommendation() {
-      const response = await axios.get(r_const.querySearchPatent,
+      const response = await axios.get(r_const.queryRecommendPatent,
         {
-          params: { patentID: this.query }
+          params: {
+            patentID: this.query,
+            sequence: "after"
+          }
         });
       console.log(response.data);
-      this.$emit("search", response.data);
+      this.$emit("showRecommendation", response.data);
     },
   },
 };

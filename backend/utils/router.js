@@ -176,7 +176,7 @@ app.get('/execHive', async (req, res) => {
     queryID = req.query.queryID
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.send({ status: true })
-    hiveResponse = await hive.execSQLOnHiveFromFile(req)
+    hiveResponse = await hive.execSparkSQLQuery(req)
     hiveResponseList[queryID] = hiveResponse
 })
 

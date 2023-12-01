@@ -4,13 +4,12 @@
       <!-- <div class="search-header">
         <img src="./assets/favicon.png" alt="Logo" />
       </div> -->
-      <search-box @search="search"></search-box>
-      <!-- <today-recommendation-container @search="search"></today-recommendation-container> -->
+      <search-box @showRecommendation="showRecommendation"></search-box>
     </div>
     <div class="recommendations">
       <div class="recommendation-list">
-        <recommendation-item v-for="item in recommendations" :key="item.pubNum" :title="item.title" :pub-num="item.pubNum"
-          :abstract="item.abstract"></recommendation-item>
+        <recommendation-item v-for="item in recommendations" :key="item.pubNum" :title="item.title"
+          :pub-num="item.pubNum"></recommendation-item>
       </div>
     </div>
   </div>
@@ -19,16 +18,12 @@
 <script>
 import SearchBox from "./components/SearchBox.vue";
 import RecommendationItem from "./components/RecommendationItem.vue";
-// import TodayRecommendation from "./components/TodayRecommendation.vue";
-import * as r_const from '@/router/consts'
-import axios from 'axios';
 
 export default {
   name: "SearchPage",
   components: {
     "search-box": SearchBox,
     "recommendation-item": RecommendationItem,
-    // "today-recommendation-container": TodayRecommendation
   },
   data() {
     return {
@@ -36,31 +31,16 @@ export default {
     };
   },
   methods: {
-    async search(searchTerm) {
-      // 向后端发送搜索请求
-      const { pubNum, rpc, abstract, description, recommendPubNums, title } = searchTerm;
-      pubNum, rpc, abstract, description, title;
+    async showRecommendation(items) {
       this.recommendations = [];
-      this.recommendations.push({
-        pubNum,
-        title,
-        abstract,
-      });
-      for (let i = 0; i < recommendPubNums.length; i++) {
-        const pubNum = recommendPubNums[i];
-        console.log(pubNum)
-        const recommendationResponse = await axios.get(r_const.querySearchPatent,
-          {
-            params: { patentID: pubNum }
-          });
-        const { abstract, title } = recommendationResponse.data;
+      for (let i = 0; i < items.length; i++) {
+        const { pubNum, title } = items[i];
         this.recommendations.push({
           pubNum,
           title,
-          abstract,
         });
       }
-    },
+    }
   },
 };
 </script>

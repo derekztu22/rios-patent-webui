@@ -10,6 +10,7 @@ export const queryPostLLMChat = "http://rios.malloc.fun:23457/postLLMChat";
 export const queryLLMChatStatus = "http://rios.malloc.fun:23457/getLLMChatStatus";
 export const queryExecHive = "http://rios.malloc.fun:23457/execHive";
 export const queryHiveExecStatus = "http://rios.malloc.fun:23457/queryHiveExecStatus";
+export const queryRecommendPatent = "http://rios.malloc.fun:23457/recommend";
 
 export const queryTaskStatusGap = 1000;
-
+export const defaultShowResultNum = 10;

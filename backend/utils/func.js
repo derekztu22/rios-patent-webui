@@ -123,6 +123,7 @@ function pollCheck(queryID, taskList, taskName) {
 setTimeout(refreshHDFSFileList, 0)
 
 module.exports = {
+    sleep,
     getHDFSFileList,
     getTemplateContext,
     loadTemplateFromDisk,

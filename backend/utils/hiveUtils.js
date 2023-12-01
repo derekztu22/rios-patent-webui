@@ -1,55 +1,16 @@
 const { promisify } = require('util');
 const fs = require('fs')
 const exec = promisify(require('child_process').exec)
+const { spawn } = require('child_process');
 const { Parser } = require('@json2csv/plainjs')
 
 const logger = require('./log')
 const func = require('./func')
 
-function execSingleSQL(sql) {
-    var res = shell.exec(`hive -e {}`)
-}
-
-async function execSQLOnHiveFromFile(req) {
-    filename = `./temp/HiveExec/${func.GenNonDuplicateID(16)}.spk`
-    hiveScript = `use google;\n${req.query.content};\nexit;\n`
-    fs.open(filename, "w", (err, fd) => {
-        if (err) {
-            logger.error(err.message);
-        } else {
-            fs.write(fd, hiveScript, (err, bytes) => {
-                if (err) {
-                    logger.error(err.message);
-                } else {
-                    logger.debug(bytes + ` bytes written to ${filename}`);
-                }
-            })
-        }
-    })
-    let code, stdout, stderr;
-    try {
-        ({ stdout, stderr } = await exec(`spark-sql --master spark://mn1:6540 -i ${filename}`));
-    } catch (e) {
-        ({ code, stdout, stderr } = e);
-    }
-
-    if (code) {
-        logger.debug(code)
-        logger.debug(stderr)
-        return {
-            status: false,
-            code: code,
-            content: stderr.trim()
-        }
-    }
-    sparkLikeJson = parseShellOutput(req, stdout.trim())
-    return {
-        status: true,
-        code: code,
-        content: stdout.trim(),
-        sparkLikeJson: sparkLikeJson
-    }
-}
+var sparkShellProcess;
+var sparkShellOutDict = {};
+var sparkShellPartial = ""
+var sparkShellOutIndex = 0;
 
 function writeCsvToDisk(taskID, JSONString) {
     const csvParser = new Parser()
@@ -102,8 +63,88 @@ function parseShellOutput(req, shellOutput) {
     return sparkLikeJson
 }
 
+function removeFirstAndLastNewline(str) {
+    const firstNewlineIndex = str.indexOf('\n');
+
+    if (firstNewlineIndex !== -1) {
+        const lastNewlineIndex = str.lastIndexOf('\n');
+        const result = str.substring(firstNewlineIndex + 1, lastNewlineIndex);
+        return result;
+    }
+
+    return str;
+}
+
+function prepareRealSQL(command) {
+    return command.replace("google_full", "google_cache")
+}
+
+function prepareSparkShell() {
+    sparkShellProcess = spawn('spark-sql', ['--master', 'spark://mn1:6540', '--total-executor-cores', '280', '--executor-memory', '6G']);
+    func.sleep(10000)
+
+    sparkShellProcess.stdout.on('data', (data) => {
+        if (sparkShellOutIndex != 0) {
+            const output = data.toString()
+            sparkShellPartial += output
+        }
+        else {
+            logger.debug(data.toString())
+        }
+    });
+
+    sparkShellProcess.stderr.on('data', (data) => {
+        if (sparkShellOutIndex != 0) {
+            const output = data.toString()
+            if (output.includes("Time taken:")) {
+                minKey = Math.min(...Object.keys(sparkShellOutDict));
+                sparkShellOutDict[minKey] = removeFirstAndLastNewline(sparkShellPartial)
+                sparkShellPartial = ""
+            }
+        }
+        else {
+            logger.error(data.toString())
+        }
+    });
+
+    sparkShellProcess.on('close', (code) => {
+        logger.info(`Spark Shell process exited with code ${code}`);
+    });
+
+    sendCommandToSparkShell("cache table google_cache as select publication_number, assignee, primary_cpc, cpc, grant_date, title_localized, abstract_localized, claims_localized from google.google_full;")
+    // sendCommandToSparkShell("cache table google_test as select assignee from google.google_full limit 40;")
+}
+
+function sendCommandToSparkShell(command) {
+    logger.debug(`Spark-sql execute \'${command}\'`)
+    sparkShellProcess.stdin.write(command + ';\n');
+}
+
+async function execSparkSQLQuery(req) {
+    curIndex = sparkShellOutIndex
+    sparkShellOutIndex++
+    sparkShellOutDict[curIndex] = null
+    realCommand = prepareRealSQL(req.query.content)
+    sendCommandToSparkShell(realCommand)
+
+    while (sparkShellOutDict[curIndex] == null) {
+        await func.sleep(500)
+    }
+
+    trimmed = sparkShellOutDict[curIndex].trim()
+    logger.info(trimmed)
+    delete sparkShellOutDict[curIndex]
+    sparkLikeJson = parseShellOutput(req, trimmed)
+    return {
+        status: true,
+        code: 0,
+        content: trimmed,
+        sparkLikeJson: sparkLikeJson
+    }
+}
+
+prepareSparkShell()
+
 module.exports = {
-    execSingleSQL,
-    execSQLOnHiveFromFile,
-    parseShellOutput
+    execSparkSQLQuery
 }
