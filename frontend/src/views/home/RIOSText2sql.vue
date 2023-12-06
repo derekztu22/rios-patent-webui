@@ -131,7 +131,9 @@ export default {
             if (nodeRes.status) {
                 if (hiveRes.status) {
                     this.$emit("openNotification", "success", "Server Response", "Finished");
-                    this.$emit("setTable", hiveRes.sparkLikeJson, this.hiveQueryID)
+                    if (hiveRes.sparkLikeJson) {
+                        this.$emit("setTable", hiveRes.sparkLikeJson, this.hiveQueryID)
+                    }
                 }
                 else {
                     this.$emit("openNotification", "error", "Server Response", `Error Code ${hiveRes.code}`);

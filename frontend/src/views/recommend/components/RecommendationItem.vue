@@ -1,8 +1,9 @@
 <template>
   <div class="recommendation-item">
-    <div class="title"><a :href="'https://patents.google.com/patent/' + pubNum + '/en'">{{ title }}</a></div>
+    <div class="title"><a :href="'https://patents.google.com/patent/' + pubNum.replaceAll('-', '') + '/en'">{{ title }}</a>
+    </div>
     <div class="pubNum">Publication Number: {{ pubNum }}</div>
-    <div class="abstract">{{ abstract.substring(9) }}</div>
+    <!-- <div class="abstract">{{ abstract.substring(9) }}</div> -->
   </div>
 </template>
 
@@ -18,10 +19,10 @@ export default {
       type: String,
       required: true
     },
-    abstract: {
-      type: String,
-      required: true
-    }
+    // abstract: {
+    //   type: String,
+    //   required: true
+    // }
   }
 }
 </script>

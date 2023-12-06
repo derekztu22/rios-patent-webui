@@ -1,22 +1,22 @@
 <template>
   <div id="app">
     <!-- <SearchPage/> -->
-    <!-- <PatentHome/> -->
+    <PatentHome/>
     <!-- <router-link to="/PatentHome">首页</router-link>
     <router-link to="/SearchPage">关于</router-link> -->
-    <router-view></router-view>
+    <!-- <router-view></router-view> -->
   </div>
 </template>
 
 <script>
 // import SearchPage from './views/recommend/SearchPage.vue';
-// import PatentHome from './views/PatentHome.vue';
+import PatentHome from './views/PatentHome.vue';
 
 export default {
   name: 'app',
   components: {
     // SearchPage,
-    // PatentHome
+    PatentHome
   }
 }
 </script>

@@ -26,7 +26,7 @@ export default {
           }
         });
       console.log(response.data);
-      this.$emit("showRecommendation", response.data);
+      this.$emit("showRecommendation", response.data.recommended_patents);
     },
   },
 };

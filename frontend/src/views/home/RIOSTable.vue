@@ -64,39 +64,43 @@ export default {
     methods: {
         setTable(tableVar, taskID) {
             // console.log(tableVar)
-            var headData = []
-            var tableData = []
-            for (const [key, value] of Object.entries(tableVar[0])) {
-                headData.push({ tableTitle: key })
-                value
-            }
-            tableVar.forEach(element => {
-                var row = []
-                for (const [key, value] of Object.entries(element)) {
-                    row.push({ value: value })
-                    key
+            try {
+                var headData = []
+                var tableData = []
+                for (const [key, value] of Object.entries(tableVar[0])) {
+                    headData.push({ tableTitle: key })
+                    value
                 }
-                tableData.push(row)
-            });
-            // console.log(headData)
-            // console.log(tableData)
+                tableVar.forEach(element => {
+                    var row = []
+                    for (const [key, value] of Object.entries(element)) {
+                        row.push({ value: value })
+                        key
+                    }
+                    tableData.push(row)
+                });
+                // console.log(headData)
+                // console.log(tableData)
 
-            this.headData.length = 0
-            headData.forEach(
-                (item) => {
-                    this.headData.push(item)
-                }
-            )
-            this.tableData.length = 0
-            tableData.forEach(
-                (item) => {
-                    this.tableData.push(item)
-                }
-            )
-            this.taskID = taskID
-            var href = r_const.queryDownloadTaskData + `?taskID=${taskID}`
-            // var href = "http://localhost:23457/downloadTaskData?taskID=test"
-            document.getElementById("dl").setAttribute("href", href)
+                this.headData.length = 0
+                headData.forEach(
+                    (item) => {
+                        this.headData.push(item)
+                    }
+                )
+                this.tableData.length = 0
+                tableData.forEach(
+                    (item) => {
+                        this.tableData.push(item)
+                    }
+                )
+                this.taskID = taskID
+                var href = r_const.queryDownloadTaskData + `?taskID=${taskID}`
+                document.getElementById("dl").setAttribute("href", href)
+
+            } catch (error) {
+                console.log("Parse table failed.")
+            }
         },
         async downloadTable() {
             await axios.get(r_const.queryDownloadTaskData,

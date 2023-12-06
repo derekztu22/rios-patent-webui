@@ -194,7 +194,7 @@ app.get('/recommend', async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     patentID = req.query.patentID
     sequence = req.query.sequence
-    combSize = "2"
+    combSize = "3"
     payload = {
         "patent_number": patentID,
         "after_or_before": sequence,

@@ -9,7 +9,7 @@
     <div class="recommendations">
       <div class="recommendation-list">
         <recommendation-item v-for="item in recommendations" :key="item.pubNum" :title="item.title"
-          :pub-num="item.pubNum"></recommendation-item>
+          :pubNum="item.pubNum"></recommendation-item>
       </div>
     </div>
   </div>
@@ -34,10 +34,11 @@ export default {
     async showRecommendation(items) {
       this.recommendations = [];
       for (let i = 0; i < items.length; i++) {
-        const { pubNum, title } = items[i];
+        let pubNum = items[i].publication_number
+        let title = items[i].title
         this.recommendations.push({
-          pubNum,
           title,
+          pubNum
         });
       }
     }

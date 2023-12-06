@@ -14,21 +14,27 @@ var sparkShellOutIndex = 0;
 
 function writeCsvToDisk(taskID, JSONString) {
     const csvParser = new Parser()
-    const csv = csvParser.parse(JSONString)
-    const csvFile = `./temp/TaskData/${taskID}.csv`
-    fs.open(csvFile, "w", (err, fd) => {
-        if (err) {
-            logger.error(err.message);
-        } else {
-            fs.write(fd, csv, (err, bytes) => {
-                if (err) {
-                    logger.error(err.message);
-                } else {
-                    logger.debug(bytes + ` bytes written to ${csvFile}`);
-                }
-            })
-        }
-    })
+    try {
+        const csv = csvParser.parse(JSONString)
+        const csvFile = `./temp/TaskData/${taskID}.csv`
+        fs.open(csvFile, "w", (err, fd) => {
+            if (err) {
+                logger.error(err.message);
+            } else {
+                fs.write(fd, csv, (err, bytes) => {
+                    if (err) {
+                        logger.error(err.message);
+                    } else {
+                        logger.debug(bytes + ` bytes written to ${csvFile}`);
+                    }
+                })
+            }
+        })
+    }
+    catch {
+        logger.error("Error parsing JSON to CSV");
+        return;
+    }
 }
 
 function parseShellOutput(req, shellOutput) {
@@ -63,16 +69,14 @@ function parseShellOutput(req, shellOutput) {
     return sparkLikeJson
 }
 
-function removeFirstAndLastNewline(str) {
-    const firstNewlineIndex = str.indexOf('\n');
+function Beautify(inputString) {
+    const lines = inputString.split('\n');
+    const filteredLines = lines.filter(line => {
+        !line.includes("spark-sql>") && !line.includes(";")
+    });
+    const resultString = filteredLines.join('\n');
 
-    if (firstNewlineIndex !== -1) {
-        const lastNewlineIndex = str.lastIndexOf('\n');
-        const result = str.substring(firstNewlineIndex + 1, lastNewlineIndex);
-        return result;
-    }
-
-    return str;
+    return resultString;
 }
 
 function prepareRealSQL(command) {
@@ -84,26 +88,27 @@ function prepareSparkShell() {
     func.sleep(10000)
 
     sparkShellProcess.stdout.on('data', (data) => {
+        logger.debug(data.toString())
         if (sparkShellOutIndex != 0) {
             const output = data.toString()
             sparkShellPartial += output
         }
-        else {
-            logger.debug(data.toString())
-        }
     });
 
     sparkShellProcess.stderr.on('data', (data) => {
+        logger.error(data.toString())
         if (sparkShellOutIndex != 0) {
             const output = data.toString()
             if (output.includes("Time taken:")) {
                 minKey = Math.min(...Object.keys(sparkShellOutDict));
-                sparkShellOutDict[minKey] = removeFirstAndLastNewline(sparkShellPartial)
+                sparkShellOutDict[minKey] = Beautify(sparkShellPartial)
                 sparkShellPartial = ""
             }
-        }
-        else {
-            logger.error(data.toString())
+            else if (output.includes("== SQL ==") || output.includes("Error in query")) {
+                minKey = Math.min(...Object.keys(sparkShellOutDict));
+                sparkShellOutDict[minKey] = Beautify(output)
+                sparkShellPartial = ""
+            }
         }
     });
 
@@ -121,6 +126,7 @@ function sendCommandToSparkShell(command) {
 }
 
 async function execSparkSQLQuery(req) {
+    logger.debug("sparkShellOutDict: " + Object.keys(sparkShellOutDict))
     curIndex = sparkShellOutIndex
     sparkShellOutIndex++
     sparkShellOutDict[curIndex] = null
