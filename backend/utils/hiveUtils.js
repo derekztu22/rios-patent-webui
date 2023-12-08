@@ -84,7 +84,7 @@ function prepareRealSQL(command) {
 }
 
 function prepareSparkShell() {
-    sparkShellProcess = spawn('spark-sql', ['--master', 'spark://mn1:6540', '--total-executor-cores', '280', '--executor-memory', '6G']);
+    sparkShellProcess = spawn('spark-sql', ['--master', 'spark://mn1:6540', '--total-executor-cores', '280', '--executor-memory', '6G', '--silent']);
     func.sleep(10000)
 
     sparkShellProcess.stdout.on('data', (data) => {

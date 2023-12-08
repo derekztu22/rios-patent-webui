@@ -1,7 +1,13 @@
 <template>
-  <div class="search-box">
-    <input type="text" v-model="query" placeholder="Input Patent Number..." @keyup.enter="getRecommendation" />
-    <button @click="getRecommendation">Recommend</button>
+  <div>
+    <el-radio-group v-model="radio1">
+      <el-radio-button label="Before"></el-radio-button>
+      <el-radio-button label="After"></el-radio-button>
+    </el-radio-group>
+    <div class="search-box">
+      <input type="text" v-model="query" placeholder="Input Patent Number..." @keyup.enter="getRecommendation" />
+      <button @click="getRecommendation">Recommend</button>
+    </div>
   </div>
 </template>
   
@@ -14,6 +20,7 @@ export default {
   data() {
     return {
       query: '',
+      radio1: 'Before',
     };
   },
   methods: {
@@ -22,7 +29,7 @@ export default {
         {
           params: {
             patentID: this.query,
-            sequence: "after"
+            sequence: this.radio1.toLowerCase()
           }
         });
       console.log(response.data);
