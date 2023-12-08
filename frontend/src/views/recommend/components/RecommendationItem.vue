@@ -3,7 +3,7 @@
     <div class="title"><a :href="'https://patents.google.com/patent/' + pubNum.replaceAll('-', '') + '/en'">{{ title }}</a>
     </div>
     <div class="pubNum">Publication Number: {{ pubNum }}</div>
-    <!-- <div class="abstract">{{ abstract.substring(9) }}</div> -->
+    <div class="abstract">{{ abstract }}</div>
   </div>
 </template>
 
@@ -19,10 +19,10 @@ export default {
       type: String,
       required: true
     },
-    // abstract: {
-    //   type: String,
-    //   required: true
-    // }
+    abstract: {
+      type: String,
+      required: true
+    }
   }
 }
 </script>

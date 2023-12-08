@@ -39,12 +39,14 @@ function writeCsvToDisk(taskID, JSONString) {
 
 function parseShellOutput(req, shellOutput) {
     const lines = shellOutput.trim().split('\n');
-    const headers = lines[0].split('\t').map(header => {
-        return header.split('.')[1]
-    });
+    const headersGuess = lines[0].split('\t');
+    let headers = [];
+    for (let i = 0; i < headersGuess.length; i++) {
+        headers.push(`Line ${i}`);
+    }
     const csvData = [];
 
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = 0; i < lines.length; i++) {
         const values = lines[i].split('\t');
         const rowData = {};
         for (let j = 0; j < headers.length; j++) {
@@ -70,11 +72,14 @@ function parseShellOutput(req, shellOutput) {
 }
 
 function Beautify(inputString) {
-    const lines = inputString.split('\n');
-    const filteredLines = lines.filter(line => {
-        !line.includes("spark-sql>") && !line.includes(";")
+    // logger.debug("Call Beautify")
+    // logger.debug(inputString)
+    let resultString = inputString
+    let lines = resultString.split('\n');
+    const filteredLines = lines.filter((line) => {
+        return !line.includes("spark-sql>") && !line.includes("Time taken") && !line.includes(";")
     });
-    const resultString = filteredLines.join('\n');
+    resultString = filteredLines.join('\n');
 
     return resultString;
 }
@@ -84,31 +89,37 @@ function prepareRealSQL(command) {
 }
 
 function prepareSparkShell() {
-    sparkShellProcess = spawn('spark-sql', ['--master', 'spark://mn1:6540', '--total-executor-cores', '280', '--executor-memory', '6G', '--silent']);
+    sparkShellProcess = spawn('spark-sql', ['--master', 'spark://mn1:6540', '--total-executor-cores', '180', '--executor-memory', '6G']);
     func.sleep(10000)
 
     sparkShellProcess.stdout.on('data', (data) => {
-        logger.debug(data.toString())
+        const output = data.toString()
+        logger.debug(output)
         if (sparkShellOutIndex != 0) {
-            const output = data.toString()
+            if (output.includes("spark-sql>")) {
+                minKey = Math.min(...Object.keys(sparkShellOutDict));
+                sparkShellOutDict[minKey].str = Beautify(sparkShellPartial)
+                sparkShellPartial = ""
+            }
             sparkShellPartial += output
         }
     });
 
     sparkShellProcess.stderr.on('data', (data) => {
-        logger.error(data.toString())
+        const output = data.toString()
+        logger.error(output)
         if (sparkShellOutIndex != 0) {
-            const output = data.toString()
-            if (output.includes("Time taken:")) {
-                minKey = Math.min(...Object.keys(sparkShellOutDict));
-                sparkShellOutDict[minKey] = Beautify(sparkShellPartial)
-                sparkShellPartial = ""
-            }
-            else if (output.includes("== SQL ==") || output.includes("Error in query")) {
-                minKey = Math.min(...Object.keys(sparkShellOutDict));
-                sparkShellOutDict[minKey] = Beautify(output)
-                sparkShellPartial = ""
-            }
+            // if (output.includes("Time taken:")) {
+            //     minKey = Math.min(...Object.keys(sparkShellOutDict));
+            //     sparkShellOutDict[minKey].str = Beautify(sparkShellPartial)
+            //     sparkShellPartial = ""
+            // }
+            // else if (output.includes("Error in query")) {
+            //     minKey = Math.min(...Object.keys(sparkShellOutDict));
+            //     sparkShellOutDict[minKey].str = Beautify(output)
+            //     sparkShellPartial = ""
+            // }
+            sparkShellPartial += output
         }
     });
 
@@ -121,7 +132,7 @@ function prepareSparkShell() {
 }
 
 function sendCommandToSparkShell(command) {
-    logger.debug(`Spark-sql execute \'${command}\'`)
+    logger.info(`Spark-sql execute \'${command}\'`)
     sparkShellProcess.stdin.write(command + ';\n');
 }
 
@@ -129,15 +140,18 @@ async function execSparkSQLQuery(req) {
     logger.debug("sparkShellOutDict: " + Object.keys(sparkShellOutDict))
     curIndex = sparkShellOutIndex
     sparkShellOutIndex++
-    sparkShellOutDict[curIndex] = null
+    sparkShellOutDict[curIndex] = {
+        str: null,
+        timestamp: new Date().getTime()
+    }
     realCommand = prepareRealSQL(req.query.content)
     sendCommandToSparkShell(realCommand)
 
-    while (sparkShellOutDict[curIndex] == null) {
+    while (sparkShellOutDict[curIndex].str == null) {
         await func.sleep(500)
     }
 
-    trimmed = sparkShellOutDict[curIndex].trim()
+    trimmed = sparkShellOutDict[curIndex].str.trim()
     logger.info(trimmed)
     delete sparkShellOutDict[curIndex]
     sparkLikeJson = parseShellOutput(req, trimmed)
@@ -149,7 +163,22 @@ async function execSparkSQLQuery(req) {
     }
 }
 
+function clearExpiredObjects() {
+    var currentTime = new Date().getTime();
+
+    for (var key in sparkShellOutDict) {
+        if (sparkShellOutDict.hasOwnProperty(key)) {
+            var objectTimestamp = sparkShellOutDict[key].timestamp;
+            var elapsedTime = currentTime - objectTimestamp;
+            if (elapsedTime > 2 * 60 * 1000) {
+                delete sparkShellOutDict[key];
+            }
+        }
+    }
+}
+
 prepareSparkShell()
+setInterval(clearExpiredObjects, 2000)
 
 module.exports = {
     execSparkSQLQuery

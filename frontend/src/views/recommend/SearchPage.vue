@@ -8,8 +8,8 @@
     </div>
     <div class="recommendations">
       <div class="recommendation-list">
-        <recommendation-item v-for="item in recommendations" :key="item.pubNum" :title="item.title"
-          :pubNum="item.pubNum"></recommendation-item>
+        <recommendation-item v-for="item in recommendations" :key="item.pubNum" :title="item.title" :pubNum="item.pubNum"
+          :abstract="item.abstract"></recommendation-item>
       </div>
     </div>
   </div>
@@ -36,9 +36,11 @@ export default {
       for (let i = 0; i < items.length; i++) {
         let pubNum = items[i].publication_number
         let title = items[i].title
+        let abstract = items[i].abstract
         this.recommendations.push({
           title,
-          pubNum
+          pubNum,
+          abstract
         });
       }
     }
