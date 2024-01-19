@@ -3,10 +3,10 @@ module.exports = {
   devServer: {
     port: 23456,
     allowedHosts: [
-      'rioslab.org',
       '.rioslab.org',
       '.malloc.fun'
     ],
+    webSocketServer: false,
     // proxy: {
     //   '/runTask': {
     //      target: "http://localhost:23457/runTask", // 目标路径
