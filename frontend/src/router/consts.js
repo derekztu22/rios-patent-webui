@@ -11,6 +11,13 @@ export const queryLLMChatStatus = "http://rios.malloc.fun:23457/getLLMChatStatus
 export const queryExecHive = "http://rios.malloc.fun:23457/execHive";
 export const queryHiveExecStatus = "http://rios.malloc.fun:23457/queryHiveExecStatus";
 export const queryRecommendPatent = "http://rios.malloc.fun:23457/recommend";
+export const queryTranslate = "http://localhost:23457/translate";
+export const queryRetrain = "http://localhost:23457/retrain";
+export const queryLoad = "http://localhost:23457/load";
+export const querySave = "http://localhost:23457/save";
+export const queryLogin = "http://localhost:23457/login";
+export const queryLogout = "http://localhost:23457/logout";
+export const queryDocxTranslate = "http://localhost:23457/docxtranslate";
 
 export const queryTaskStatusGap = 1000;
 export const defaultShowResultNum = 10;

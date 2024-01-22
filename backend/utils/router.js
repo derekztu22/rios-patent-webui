@@ -1,6 +1,7 @@
 const express = require('express')
 const fs = require('fs')
 const axios = require('axios')
+var FormData = require('form-data');
 const { Parser } = require('@json2csv/plainjs')
 
 const func = require('./func')
@@ -8,8 +9,25 @@ const logger = require('./log')
 const global = require('./global')
 const hive = require('./hiveUtils')
 const llm = require('./llmUtils')
-
 const app = express();
+
+const multer = require('multer')
+
+//const storage = multer.diskStorage({
+//  destination: (req, file, cb)=>{
+//    cb(null, '/work/stu/dtu/work/tmp/')
+//  },
+//  filename: (req, file, cb)=>{
+//    cb(null, file.originalname)
+//  }
+//})
+//
+//const upload = multer({ storage: storage })
+
+const upload = multer({ dest: 'uploads/' })
+
+
+
 var taskList = {};
 var llmResponseList = {};
 var hiveResponseList = {};
@@ -202,6 +220,154 @@ app.get('/recommend', async (req, res) => {
     }
     response = await axios.post(global.recommendRouter, payload)
     res.send(response.data)
+})
+
+
+app.get('/login', async (req, res) => {
+    logger.info("Call /login");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    cookie = req.query.cookie;
+    const api = axios.create({
+                             withCredentials: true,
+                             headers: {
+                                 Cookie: cookie, 
+                               },
+                             xsrfCookieName: 'csrf_access_token',
+                             xsrfHeaderName: "x-csrftoken"
+                            });
+    response = await api.post(global.loginRouter)
+    res.send(response.data)
+})
+
+app.get('/logout', async (req, res) => {
+    logger.info("Call /logout");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    cookie = req.query.cookie;
+    const api = axios.create({
+                             withCredentials: true,
+                             headers: {
+                                 Cookie: cookie, 
+                               },
+                             xsrfCookieName: 'csrf_access_token',
+                             xsrfHeaderName: "x-csrftoken"
+                            });
+    response = await api.post(global.logoutRouter)
+    res.send(response.data)
+})
+
+app.get('/translate', async (req, res) => {
+    logger.info("Call /translate");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    cookie = req.query.cookie;
+    const api = axios.create({
+                             withCredentials: true,
+                             headers: {
+                                 Cookie: cookie, 
+                               },
+                             xsrfCookieName: 'csrf_access_token',
+                             xsrfHeaderName: "x-csrftoken"
+                            });
+    text = req.query.text
+    in_lang = req.query.in_lang
+    out_lang = req.query.out_lang
+    payload = {
+        "text": text,
+        "in_lang": in_lang,
+        "out_lang": out_lang
+    }
+    response = await api.get(global.translatorRouter, {params: payload})
+    res.send(response.data)
+})
+
+app.get('/retrain', async (req, res) => {
+    logger.info("Call /retrain");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    cookie = req.query.cookie;
+    const api = axios.create({
+                             withCredentials: true,
+                             headers: {
+                                 Cookie: cookie, 
+                               },
+                             xsrfCookieName: 'csrf_access_token',
+                             xsrfHeaderName: "x-csrftoken"
+                            });
+    src_text = req.query.src_text
+    tgt_text = req.query.tgt_text
+    in_lang = req.query.in_lang
+    out_lang = req.query.out_lang
+    payload = {
+        "in_lang": in_lang,
+        "out_lang": out_lang,
+        "src_text": src_text,
+        "tgt_text": tgt_text
+    }
+    response = await api.post(global.retrainRouter, payload)
+    res.send(response.data)
+})
+
+app.get('/save', async (req, res) => {
+    logger.info("Call /save");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    cookie = req.query.cookie;
+    const api = axios.create({
+                             withCredentials: true,
+                             headers: {
+                                 Cookie: cookie, 
+                               },
+                             xsrfCookieName: 'csrf_access_token',
+                             xsrfHeaderName: "x-csrftoken"
+                            });
+    model = req.query.path
+    payload = {
+        "model_path": model,
+    }
+    response = await api.post(global.saveRouter, payload)
+    res.send(response.data)
+})
+
+app.get('/load', async (req, res) => {
+    logger.info("Call /load");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    cookie = req.query.cookie;
+    const api = axios.create({
+                             withCredentials: true,
+                             headers: {
+                                 Cookie: cookie, 
+                               },
+                             xsrfCookieName: 'csrf_access_token',
+                             xsrfHeaderName: "x-csrftoken"
+                            });
+    model = req.query.path
+    payload = {
+        "model_path": model,
+    }
+    response = await api.post(global.loadRouter, payload, { withCredentials: true})
+    res.send(response.data)
+})
+
+app.post('/docxtranslate', upload.single('docx'), async (req, res) => {
+    logger.info("Call /docxtranslate");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    cookie = req.query.cookie;
+    const api = axios.create({
+                             withCredentials: true,
+                             headers: {
+                                 Cookie: cookie, 
+                                 'Content-Type': "multipart/form-data; charset=utf-8; boundary=" + Math.random().toString().substr(2),
+                               },
+                             xsrfCookieName: 'csrf_access_token',
+                             xsrfHeaderName: "x-csrftoken"
+                            });
+
+    var formData = new FormData();
+    docx = fs.createReadStream(req.file.path);
+    formData.append('docx', docx, 'tmp.docx');
+    in_lang = req.query.in_lang;
+    out_lang = req.query.out_lang;
+    formData.append('in_lang', in_lang);
+    formData.append('out_lang', out_lang);
+    response = await api.post(global.docxTranslateRouter, formData);
+    res.send(response)
 })
 
 module.exports = app
