@@ -6,6 +6,9 @@ task_data
 test
 *.out
 
+# Cert files
+**/*.pem
+
 # backend temp files
 backend/temp
 

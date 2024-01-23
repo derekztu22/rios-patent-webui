@@ -37,7 +37,7 @@ function writeCsvToDisk(taskID, JSONString) {
     }
 }
 
-function parseShellOutput(req, shellOutput) {
+function shell2csv(req, shellOutput) {
     const lines = shellOutput.trim().split('\n');
     const headersGuess = lines[0].split('\t');
     let headers = [];
@@ -72,17 +72,27 @@ function parseShellOutput(req, shellOutput) {
     return sparkLikeJson
 }
 
-function Beautify(inputString) {
-    // logger.debug("Call Beautify")
-    // logger.debug(inputString)
-    let resultString = inputString
-    let lines = resultString.split('\n');
+function parse(inputString) {
+    logger.debug(`inputString: ${inputString}`)
+    let tableString = inputString
+    let lines = tableString.split('\n')
+    let fetchedValue
+    lines.forEach(line => {
+        const match = line.match(/Fetched (\d+) row\(s\)/);
+        if (match) {
+            fetchedValue = match[1]
+        }
+    })
     const filteredLines = lines.filter((line) => {
         return !line.includes("spark-sql>") && !line.includes("Time taken") && !line.includes(";")
-    });
-    resultString = filteredLines.join('\n');
+    })
+    tableString = filteredLines.join('\n')
+    showedString = `Fetched ${fetchedValue} row(s):\n\n` + tableString
 
-    return resultString;
+    return {
+        showStr: showedString,
+        tableStr: tableString
+    }
 }
 
 function prepareRealSQL(command) {
@@ -90,7 +100,7 @@ function prepareRealSQL(command) {
 }
 
 function prepareSparkShell() {
-    sparkShellProcess = spawn('spark-sql', ['--master', 'spark://mn1:6540', '--total-executor-cores', '180', '--executor-memory', '6G', '--hiveconf', 'hive.cli.print.header=true']);
+    sparkShellProcess = spawn('spark-sql', ['--master', 'spark://mn1:6540', '--total-executor-cores', '60', '--executor-memory', '6G', '--hiveconf', 'hive.cli.print.header=true']);
     func.sleep(10000)
 
     sparkShellProcess.stdout.on('data', (data) => {
@@ -98,11 +108,13 @@ function prepareSparkShell() {
         logger.debug(output)
         if (sparkShellOutIndex != 0) {
             sparkShellPartial += output
-            if (output.includes("spark-sql>")) {
-                minKey = Math.min(...Object.keys(sparkShellOutDict));
-                sparkShellOutDict[minKey].str = Beautify(sparkShellPartial)
-                sparkShellPartial = ""
-            }
+            // if (output.includes("spark-sql>")) {
+            //     minKey = Math.min(...Object.keys(sparkShellOutDict));
+            //     let result = parse(sparkShellPartial)
+            //     sparkShellOutDict[minKey].showStr = result.showStr
+            //     sparkShellOutDict[minKey].tableStr = result.tableStr
+            //     sparkShellPartial = ""
+            // }
         }
     });
 
@@ -110,17 +122,21 @@ function prepareSparkShell() {
         const output = data.toString()
         logger.error(output)
         if (sparkShellOutIndex != 0) {
-            // if (output.includes("Time taken:")) {
-            //     minKey = Math.min(...Object.keys(sparkShellOutDict));
-            //     sparkShellOutDict[minKey].str = Beautify(sparkShellPartial)
-            //     sparkShellPartial = ""
-            // }
-            // else if (output.includes("Error in query")) {
-            //     minKey = Math.min(...Object.keys(sparkShellOutDict));
-            //     sparkShellOutDict[minKey].str = Beautify(output)
-            //     sparkShellPartial = ""
-            // }
             sparkShellPartial += output
+            if (output.includes("Time taken:")) {
+                minKey = Math.min(...Object.keys(sparkShellOutDict));
+                let result = parse(sparkShellPartial)
+                sparkShellOutDict[minKey].showStr = result.showStr
+                sparkShellOutDict[minKey].tableStr = result.tableStr
+                sparkShellPartial = ""
+            }
+            else if (output.includes("Error in query")) {
+                minKey = Math.min(...Object.keys(sparkShellOutDict));
+                let result = parse(sparkShellPartial)
+                sparkShellOutDict[minKey].showStr = result.showStr
+                sparkShellOutDict[minKey].tableStr = result.tableStr
+                sparkShellPartial = ""
+            }
         }
     });
 
@@ -139,23 +155,32 @@ function sendCommandToSparkShell(command) {
 
 async function execSparkSQLQuery(req) {
     logger.debug("sparkShellOutDict: " + Object.keys(sparkShellOutDict))
+    if (req.query.content.includes("drop ")) {
+        return {
+            status: false,
+            code: 1,
+            content: "Bad request contains drop!",
+            sparkLikeJson: null
+        }
+    }
     curIndex = sparkShellOutIndex
     sparkShellOutIndex++
     sparkShellOutDict[curIndex] = {
-        str: null,
+        tableStr: null,
+        showStr: null,
         timestamp: new Date().getTime()
     }
     realCommand = prepareRealSQL(req.query.content)
     sendCommandToSparkShell(realCommand)
 
-    while (sparkShellOutDict[curIndex].str == null) {
+    while (sparkShellOutDict[curIndex].tableStr == null) {
         await func.sleep(500)
     }
 
-    trimmed = sparkShellOutDict[curIndex].str.trim()
+    trimmed = sparkShellOutDict[curIndex].showStr.trim()
     logger.info(trimmed)
+    sparkLikeJson = shell2csv(req, sparkShellOutDict[curIndex].tableStr.trim())
     delete sparkShellOutDict[curIndex]
-    sparkLikeJson = parseShellOutput(req, trimmed)
     return {
         status: true,
         code: 0,
