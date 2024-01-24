@@ -95,7 +95,8 @@
               @setResponseLoading="setResponseLoading" @setTable="setTable"></r-editor>
           </el-tab-pane>
           <el-tab-pane label="RIOS SQLChat" name="sqlgen">
-            <r-sqlgen ref="sqlGenTab" @openNotification="openNotification" @setTable="setTable"></r-sqlgen>
+            <r-sqlgen ref="sqlGenTab" @openNotification="openNotification" @setTable="setTable"
+              @clearTable="clearTable"></r-sqlgen>
           </el-tab-pane>
           <el-tab-pane label="Spark Response" name="response">
             <r-response ref="responseTab"></r-response>
@@ -238,6 +239,9 @@ export default {
     },
     setTable(serverTable, taskID) {
       this.$refs.resultTab.setTable(serverTable, taskID)
+    },
+    clearTable() {
+      this.$refs.resultTab.clearTable()
     },
     setResponseLoading() {
       this.$refs.responseTab.setLoading()
