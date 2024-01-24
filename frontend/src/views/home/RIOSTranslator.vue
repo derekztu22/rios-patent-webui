@@ -44,6 +44,9 @@
                 <el-button type="primary" icon="el-icon-refresh"
                            :loading="retrain_clicked"
                             @click="retrain" id="retrainBtn">Retrain</el-button>
+
+                <el-button type="primary" @click="openPopup" id="keywordDictButton">Keyword Dict</el-button>
+
             </el-form-item>
         </el-form>
         <div>
@@ -68,19 +71,74 @@
 
          <div class="form-group row mb-0">
            <div class="col-md-6 offset-md-4">
-             <button @click.prevent="submit" type="submit" class="btn btn-primary" style="background: #42b983">
-               Submit
-             </button>
+             <el-button type="primary" :loading="submit_clicked" @click="submit" id="submitButton">Submit</el-button>
+             <el-button type="primary" :loading="submit_clicked" @click="showTranslatedDocx" id="showTranslatedButton">Show Translated Docx</el-button>
            </div>
          </div>
-
         </div>
+
+        <div class="modal" v-if="showTranslated">
+          <div class="showDoc-content" ref="docRef">
+            <button class="close-x" @click="closeTranslatedDocx"> X</button>
+            <div class="modal-header">
+              <h1>Keyword Translated Docx</h1>
+            </div>
+            <div class="modal-body">
+              <p> Please see your translated text below: </p>
+
+              <table border="1">
+              <tbody> 
+              <tr v-for="(input,k) in translated_seqs" :key="k">
+                  <td>{{ input.in }}</td>
+                  <td>{{ input.out }}</td>
+              </tr>
+              </tbody>
+              </table>
+
+            </div>
+            <div class="modal-footer">
+              <button class="close-button" @click="closeTranslatedDocx">Close</button>
+            </div>
+          </div>
+        </div>
+       
+
+        <div class="modal" v-if="showPopup">
+          <div class="modal-content" ref="modalRef">
+            <button class="close-x" @click="closePopup"> X</button>
+            <div class="modal-header">
+              <h1>Keyword Mapping Dictionary</h1>
+            </div>
+            <div class="modal-body">
+              <p> Please define your keyword pairings here </p>
+              <div v-for="(input,k) in keywords" :key="k">
+                  <input type="text" class="form-control" v-model="input.Keyword1">
+                  <input type="text" class="form-control" v-model="input.Keyword2">
+              </div>
+              <button class="keyword_btn" @click="addKeywords">Add Pairing</button>
+            </div>
+            <div class="modal-footer">
+              <button class="close-button" @click="closePopup">Close</button>
+              <button class="save-button" @click="saveKeyword">Save</button>
+              <div class="custom-file">
+                <input type="file" class="custom-file-input" id="customKeywordFile" 
+                    ref="xlsxFile" @change="handleXLSXObject()">
+              </div>
+              <button @click.prevent="keywordUpload" type="keywordUpload" class="btn btn-primary" style="background: #42b983">
+                Upload Keyword
+              </button>
+            </div>
+          </div>
+        </div>
+
     </div>
 </template>
   
 <script>
 import axios from 'axios';
 import * as r_const from '@/router/consts'
+//import exportFromJSON from "export-from-json";
+import * as XLSX from "xlsx";
 
 export default {
     name: "TranslatorPage",
@@ -93,6 +151,14 @@ export default {
                 {
                     value: 'Chinese',
                 },
+            ],
+            keywords: [
+              {
+                  Keyword1: '',
+                  Keyword2: ''
+              }
+            ],
+            translated_seqs: [
             ],
             in_lang: 'Chinese',
             out_lang: 'English',
@@ -107,9 +173,13 @@ export default {
             save_clicked: false,
             retrain_clicked: false,
             translate_clicked: false,
+            submit_clicked: false,
             save_path: './new_saved_model',
             load_path: './new_saved_model',
-            docx: null
+            showPopup: false,
+            showTranslated: false,
+            docx: null,
+            xlsx: null,
         };
     },
     methods: {
@@ -156,9 +226,17 @@ export default {
         async retrain() {
           try {
             this.retrain_clicked = true;
+            var src_retrain = "";
+            var tgt_retrain = "";
+            this.keywords.forEach(_ => {
+                src_retrain = src_retrain +  _['Keyword1'] + ", ";
+                tgt_retrain = tgt_retrain +  _['Keyword2'] + ", ";
+            });
+            src_retrain = src_retrain.slice(0, -2);
+            tgt_retrain = tgt_retrain.slice(0, -2);
             await axios.get(r_const.queryRetrain,
-                            {params: {src_text: this.in_text,
-                                      tgt_text: this.out_text,
+                            {params: {src_text: src_retrain,
+                                      tgt_text: tgt_retrain,
                                       in_lang: this.in_lang,
                                       out_lang: this.out_lang,
                                       cookie: 'sessionid='+this.user}});
@@ -198,9 +276,9 @@ export default {
           this.docx = this.$refs.file.files[0]
         },
         async submit() {
+          this.submit_clicked = true;
           var formData = new FormData();
           formData.append('docx', this.docx);
-          console.log(this.docx);
           await axios.post(r_const.queryDocxTranslate, formData, 
           { params: {in_lang: this.in_lang,
                      out_lang: this.out_lang,
@@ -211,30 +289,113 @@ export default {
             }
           }).then((response) => {
             // looping over each element in response.data (each converted bytesIO string)
-            console.log(response);
-            response.data['results'].forEach((element) => {
-              console.log('Recieved Document')
-              console.log(element)
+            var idx=0;
+            for (let i=0; i < response.data['results_in'].length; i++) {
+              const newObj = {};
+              newObj['in'] = response.data['results_in'][i];
+              newObj['out'] = response.data['results_out'][i];
+              this.translated_seqs.push(newObj) 
+            }
+            response.data['results_files'].forEach((element) => {
 
-              // decode string to blob --> solution to question
+              // decode string to blob 
               const byteCharacters = atob(element);
               const byteNumbers = new Array(byteCharacters.length);
               for (let i = 0; i < byteCharacters.length; i++) {
                 byteNumbers[i] = byteCharacters.charCodeAt(i);
               }
               const byteArray = new Uint8Array(byteNumbers);
-              console.log(byteArray)
-
-              const url = window.URL.createObjectURL(new Blob([byteArray]));
+              var url = window.URL.createObjectURL(new Blob([byteArray]));
               const link = document.createElement('a');
               link.href = url;
               link.setAttribute('download', this.user+'_translated.docx');
+              if ((idx%2)==0) {
+                link.setAttribute('download', this.user+'_translated.xlsx');
+                this.translated_xlsx = XLSX.read(element);
+                idx = idx + 1;
+              }
               document.body.appendChild(link);
               link.click();
-            
+              this.submit_clicked=false;
             });
           });
+        },
+        handleXLSXObject() {
+          this.xlsx = this.$refs.xlsxFile.files[0]
+        },
+        keywordUpload() {
+          const fileToSheet = (file) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              /* Parse data */
+              const bstr = e.target.result;
+              const wb = XLSX.read(bstr, { type: 'binary' });
+              /* Get first worksheet */
+              const wsname = wb.SheetNames[0];
+              const ws = wb.Sheets[wsname];
+              /* Convert array of arrays */
+              var data =  XLSX.utils.sheet_to_row_object_array(ws);
+              const excellist = [];
+              for (var j=0; j < data.length; j++) {
+                excellist.push(data[j])
+              }
+              const newKeywords = [];
+              excellist.forEach(_ => {
+                const newObj = {};
+                Object.keys(_).forEach(key => {
+                  newObj[key] = _[key];
+                });
+                newKeywords.push(newObj);
+              });
+              this.keywords = newKeywords;
+            }
+            reader.readAsBinaryString(file);
+          }
+          fileToSheet(this.xlsx);
+        },
+        addKeywords() {
+            const newKeyword = {
+              Keyword1: '',
+              Keyword2: '', 
+            }
+            this.keywords.push(newKeyword);
+        },
+        saveKeyword() {
+          const fileName = this.user + '_keywords.xlsx';
+          var wb = XLSX.utils.book_new();
+          var ws = XLSX.utils.json_to_sheet(this.keywords);
+          XLSX.utils.book_append_sheet(wb, ws, "Keywords");
+          XLSX.writeFile(wb, fileName);
+        },
+        showTranslatedDocx() {
+          this.showTranslated = true;
+          document.addEventListener('mouseup', this.closeDocOnClickOutside);
+        },
+        closeTranslatedDocx() {
+          this.showTranslated = false;
+          document.removeEventListener('mouseup', this.closeDocOnClickOutside);
+        },
+        closeDocOnClickOutside(event) {
+            const modal = this.$refs.docRef;
+            if (!modal.contains(event.target)) {
+                this.closeTranslatedDocx();
+            }
+        },
+        openPopup() {
+            this.showPopup = true;
+            document.addEventListener('mouseup', this.closeModalOnClickOutside);
+        },
+        closePopup() {
+            this.showPopup = false;
+            document.removeEventListener('mouseup', this.closeModalOnClickOutside);
+        },
+        closeModalOnClickOutside(event) {
+            const modal = this.$refs.modalRef;
+            if (!modal.contains(event.target)) {
+                this.closePopup();
+            }
         }
+
     }, //end methods
 }; //end default
 
@@ -306,5 +467,120 @@ export default {
     margin-bottom: 0;
     margin-left: 10px;
 }
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 500px;
+    width: 80 %;
+    position: relative;
+}
+
+.modal-header {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.modal-body {
+    padding: 10px 0;
+}
+
+.modal-footer {
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.showDoc-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 80 %;
+    position: relative;
+    overflow-y:auto;
+    max-height: 700px;
+}
+
+.close-x {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #555;
+}
+
+.close-x:hover {
+    color: #ff0000;
+    /* Change to your desired hover color */
+}
+
+.close-button,
+.save-button {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.close-button {
+    background-color: #f44336;
+    color: white;
+}
+
+.save-button {
+    background-color: #4CAF50;
+    color: white;
+    margin-left: 10px;
+}
+
+.close-button:hover {
+    background-color: #d32f2f;
+}
+
+.save-button:hover {
+    background-color: #45a049;
+}
+
+tbody td {
+  padding: 30px;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #4C8BF5;
+  color: #fff;
+}
+
+.column {
+  float: left;
+  width: 50%;
+}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
 </style>
   

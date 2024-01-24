@@ -367,7 +367,7 @@ app.post('/docxtranslate', upload.single('docx'), async (req, res) => {
     formData.append('in_lang', in_lang);
     formData.append('out_lang', out_lang);
     response = await api.post(global.docxTranslateRouter, formData);
-    res.send(response)
+    res.send(response.data)
 })
 
 module.exports = app
