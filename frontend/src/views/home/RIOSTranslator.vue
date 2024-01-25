@@ -2,7 +2,7 @@
     <div class="translator-page">
         <el-form :inline="true" ref="form">
             <div>
-              <el-input class="userLogin" type="textarea" placeholder="Username" v-model="user">
+              <el-input class="userLogin" type="text" placeholder="Username" v-model="user">
               </el-input>
               <el-form-item>
                   <el-button type="primary" icon="el-icon-switchbutton"
@@ -49,13 +49,18 @@
 
             </el-form-item>
         </el-form>
-        <div>
-            <el-input class="userInput" type="textarea" placeholder="Input text" v-model="in_text">
-            </el-input>
-        </div>
-        <div>
-            <el-input class="userOutput" type="textarea" placeholder="Output text" v-model="out_text">
-            </el-input>
+        <div class="row">
+
+            <div class="column">
+              <el-input class="userInput" type="textarea" placeholder="Input text" v-model="in_text" style="width: 500px">
+              </el-input>
+            </div>
+
+            <div class="column">
+              <el-input class="userOutput" type="textarea" placeholder="Output text" v-model="out_text" style="width: 500px">
+              </el-input>
+            </div>
+
         </div>
         <div class="container">
 
@@ -488,6 +493,8 @@ export default {
     max-width: 500px;
     width: 80 %;
     position: relative;
+    overflow-y:auto;
+    max-height: 700px;
 }
 
 .modal-header {

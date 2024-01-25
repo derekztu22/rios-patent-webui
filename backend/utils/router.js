@@ -345,7 +345,7 @@ app.get('/load', async (req, res) => {
     res.send(response.data)
 })
 
-app.post('/docxtranslate', upload.single('docx'), async (req, res) => {
+app.post('/docxtranslate', async (req, res, next) => {req.setTimeout(0); next();}, upload.single('docx'), async (req, res) => {
     logger.info("Call /docxtranslate");
     res.setHeader("Access-Control-Allow-Origin", "*");
     cookie = req.query.cookie;
@@ -355,6 +355,7 @@ app.post('/docxtranslate', upload.single('docx'), async (req, res) => {
                                  Cookie: cookie, 
                                  'Content-Type': "multipart/form-data; charset=utf-8; boundary=" + Math.random().toString().substr(2),
                                },
+                             timeout: 0,
                              xsrfCookieName: 'csrf_access_token',
                              xsrfHeaderName: "x-csrftoken"
                             });
