@@ -5,7 +5,8 @@ const { spawn } = require('child_process');
 const { Parser } = require('@json2csv/plainjs')
 
 const logger = require('./log')
-const func = require('./func')
+const func = require('./func');
+const { loggerMaxOutput, stringMaxLen, queryLimit } = require('./global');
 
 var sparkShellProcess;
 var sparkShellOutDict = {};
@@ -73,7 +74,7 @@ function shell2csv(req, shellOutput) {
 }
 
 function parse(inputString) {
-    logger.debug(`inputString: ${inputString}`)
+    logger.debug(`inputString: ${inputString.slice(0, loggerMaxOutput)}`)
     let tableString = inputString
     let lines = tableString.split('\n')
     let fetchedValue
@@ -96,17 +97,23 @@ function parse(inputString) {
 }
 
 function prepareRealSQL(command) {
-    return command.replace("google_full", "google_cache")
+    command = command.replace("google_full", "google_cache")
+    if (command.includes(";")) {
+        command = command.replace(";", ` limit ${queryLimit};`)
+    } else {
+        command = command + ` limit ${queryLimit};`
+    }
+    return command
 }
 
 function prepareSparkShell() {
-    sparkShellProcess = spawn('spark-sql', ['--master', 'spark://mn1:6540', '--total-executor-cores', '60', '--executor-memory', '6G', '--hiveconf', 'hive.cli.print.header=true']);
+    sparkShellProcess = spawn('spark-sql', ['--properties-file', 'conf/spark-defaults.conf', '--hiveconf', 'hive.cli.print.header=true']);
     func.sleep(10000)
 
     sparkShellProcess.stdout.on('data', (data) => {
         const output = data.toString()
-        logger.debug(output)
-        if (sparkShellOutIndex != 0) {
+        // logger.debug(output)
+        if (sparkShellOutIndex != 0 && sparkShellPartial.length <= stringMaxLen) {
             sparkShellPartial += output
             // if (output.includes("spark-sql>")) {
             //     minKey = Math.min(...Object.keys(sparkShellOutDict));
@@ -115,6 +122,8 @@ function prepareSparkShell() {
             //     sparkShellOutDict[minKey].tableStr = result.tableStr
             //     sparkShellPartial = ""
             // }
+        } else {
+            logger.debug(output)
         }
     });
 
@@ -123,14 +132,9 @@ function prepareSparkShell() {
         logger.error(output)
         if (sparkShellOutIndex != 0) {
             sparkShellPartial += output
-            if (output.includes("Time taken:")) {
-                minKey = Math.min(...Object.keys(sparkShellOutDict));
-                let result = parse(sparkShellPartial)
-                sparkShellOutDict[minKey].showStr = result.showStr
-                sparkShellOutDict[minKey].tableStr = result.tableStr
-                sparkShellPartial = ""
-            }
-            else if (output.includes("Error in query")) {
+            if (output.includes("Time taken:")
+                || output.includes("Error in query")
+                || output.includes("Exception")) {
                 minKey = Math.min(...Object.keys(sparkShellOutDict));
                 let result = parse(sparkShellPartial)
                 sparkShellOutDict[minKey].showStr = result.showStr
@@ -150,7 +154,7 @@ function prepareSparkShell() {
 
 function sendCommandToSparkShell(command) {
     logger.info(`Spark-sql execute \'${command}\'`)
-    sparkShellProcess.stdin.write(command + ';\n');
+    sparkShellProcess.stdin.write(command + "\n");
 }
 
 async function execSparkSQLQuery(req) {
@@ -178,7 +182,7 @@ async function execSparkSQLQuery(req) {
     }
 
     trimmed = sparkShellOutDict[curIndex].showStr.trim()
-    logger.info(trimmed)
+    logger.info(`trimmed: ${trimmed.slice(0, loggerMaxOutput)}`)
     sparkLikeJson = shell2csv(req, sparkShellOutDict[curIndex].tableStr.trim())
     delete sparkShellOutDict[curIndex]
     return {

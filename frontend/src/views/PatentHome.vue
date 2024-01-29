@@ -261,6 +261,11 @@ export default {
         )
       }
     },
+    async maintaining() {
+      this.$alert('Maintaining...', 'Error', {
+        confirmButtonText: 'OK',
+      });
+    },
     copyFilePath(tablePath) {
       var input = document.createElement('input')
       input.value = tablePath;
@@ -273,6 +278,7 @@ export default {
   },
   mounted() {
     this.refreshTableList()
+    // this.maintaining()
   }
 }
 </script>

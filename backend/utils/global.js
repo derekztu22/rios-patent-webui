@@ -1,4 +1,7 @@
 const port = 23457;
+const loggerMaxOutput = 65536;
+const stringMaxLen = 0x1000000; // ~16MB
+const queryLimit = 1024;
 const submitTaskRouter = "http://localhost:19527/patent/publications/submit?"
 const runTaskRouter = "http://localhost:19527/patent/publications/run?"
 const getTaskDataRouter = "http://localhost:19527/patent/publications/query"
@@ -17,6 +20,9 @@ const docxTranslateRouter = "http://10.8.103.154:5000/translator/docxtranslate"
 
 module.exports = {
     port,
+    loggerMaxOutput,
+    stringMaxLen,
+    queryLimit,
     submitTaskRouter,
     runTaskRouter,
     getTaskDataRouter,
