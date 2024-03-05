@@ -4,12 +4,14 @@
       <!-- <div class="search-header">
         <img src="./assets/favicon.png" alt="Logo" />
       </div> -->
-      <search-box @showRecommendation="showRecommendation"></search-box>
+      <search-box @showRecommendation="showRecommendation" @setLoading="setLoading"></search-box>
     </div>
-    <div class="recommendations">
-      <div class="recommendation-list">
-        <recommendation-item v-for="item in recommendations" :key="item.pubNum" :title="item.title" :pubNum="item.pubNum"
-          :abstract="item.abstract"></recommendation-item>
+    <div v-loading="recommendLoading">
+      <div class="recommendations">
+        <div class="recommendation-list">
+          <recommendation-item v-for="item in recommendations" :key="item.pubNum" :title="item.title"
+            :pubNum="item.pubNum" :abstract="item.abstract"></recommendation-item>
+        </div>
       </div>
     </div>
   </div>
@@ -28,9 +30,14 @@ export default {
   data() {
     return {
       recommendations: [],
+      recommendLoading: false
     };
   },
   methods: {
+    async setLoading(status) {
+      this.recommendLoading = status
+    },
+
     async showRecommendation(items) {
       this.recommendations = [];
       for (let i = 0; i < items.length; i++) {
@@ -81,6 +88,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-height: 40px;
 }
 
 .recommendation-list {

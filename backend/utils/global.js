@@ -9,6 +9,7 @@ const patentSearchRouter = "http://localhost:19527/patent/publications/"
 const llmChatPostRouterllama65 = "http://macs.nekololi.cn:8065/v1/chat/completions"
 const llmChatPostRouterllama2_70 = "http://macs.nekololi.cn:8070/v1/chat/completions"
 const llmChatPostRouterllama13Tuned = "http://10.8.102.14:8001/nl_items/"
+const SQLExecRouter = "http://localhost:8001/sql_es/"
 const recommendRouter = "http://10.8.102.14:8002/recommend_items/"
 const translatorRouter = "http://10.8.103.154:5000/translator/translate"
 const retrainRouter = "http://10.8.103.154:5000/translator/retrain"
@@ -30,6 +31,7 @@ module.exports = {
     llmChatPostRouterllama65,
     llmChatPostRouterllama2_70,
     llmChatPostRouterllama13Tuned,
+    SQLExecRouter,
     recommendRouter,
     translatorRouter,
     retrainRouter,
