@@ -18,6 +18,7 @@ const loadRouter = "http://10.8.103.154:5000/translator/load"
 const loginRouter = "http://10.8.103.154:5000/translator/login"
 const logoutRouter = "http://10.8.103.154:5000/translator/logout"
 const docxTranslateRouter = "http://10.8.103.154:5000/translator/docxtranslate"
+const collectRouter = "http://10.8.103.154:5000/translator/collect"
 
 module.exports = {
     port,
@@ -39,5 +40,6 @@ module.exports = {
     loadRouter,
     loginRouter,
     logoutRouter,
-    docxTranslateRouter
+    docxTranslateRouter,
+    collectRouter
 }

@@ -28,11 +28,8 @@
                     </el-option>
                 </el-select>
             </el-form-item>
-            <el-form-item>
-                <el-button type="primary" icon="el-icon-chat-dot-round"
-                           :loading="translate_clicked"
-                           @click="translate" id="translateBtn">Translate</el-button>
 
+            <el-form-item>
                 <el-button type="primary" icon="el-icon-upload" 
                            :loading="save_clicked"
                            @click="saveExec" id="saveBtn">Save</el-button>
@@ -50,36 +47,41 @@
             </el-form-item>
         </el-form>
         <div class="row">
-
-            <div class="column">
-              <el-input class="userInput" type="textarea" placeholder="Input text" v-model="in_text" style="width: 500px">
+              <el-input class="userInput" cols="15" rows="15"  type="textarea"  placeholder="Input text" v-model="in_text" style="width: 500px">
               </el-input>
-            </div>
 
-            <div class="column">
-              <el-input class="userOutput" type="textarea" placeholder="Output text" v-model="out_text" style="width: 500px">
+              <el-input class="userOutput" cols="15" rows="15"  type="textarea" placeholder="Output text" v-model="out_text" style="width: 500px">
               </el-input>
-            </div>
+	</div>
 
-        </div>
+        <el-form :inline="true" ref="form">
+            <el-form-item>
+                <el-button type="primary" icon="el-icon-chat-dot-round"
+                           :loading="translate_clicked"
+                           @click="translate" id="translateBtn">Translate</el-button>
+            </el-form-item>
+        </el-form>
+        <br>
+        <br>
+        <br>
         <div class="container">
-
-        <div class="form-group row">
-           <label class="col-md-4 col-form-label text-md-right">Translate .docx</label>
-           <div class="col-md-6">
-             <div class="custom-file">
-               <input type="file" class="custom-file-input" id="customFile" 
-                   ref="file" @change="handleFileObject()">
-             </div>
-           </div>
-         </div>
-
-         <div class="form-group row mb-0">
-           <div class="col-md-6 offset-md-4">
-             <el-button type="primary" :loading="submit_clicked" @click="submit" id="submitButton">Submit</el-button>
-             <el-button type="primary" :loading="submit_clicked" @click="showTranslatedDocx" id="showTranslatedButton">Show Translated Docx</el-button>
-           </div>
-         </div>
+          <div class="form-group row">
+            <label class="col-md-4 col-form-label text-md-right"><font size="+2"><b>Translate .docx</b></font></label>
+            <br>
+            <div class="col-md-6">
+              <div class="custom-file">
+                <input type="file" class="custom-file-input" id="customFile" 
+                    ref="file" @change="handleFileObject()">
+              </div>
+            </div>
+          </div>
+          <br>
+          <div class="form-group row mb-0">
+            <div class="col-md-6 offset-md-4">
+              <el-button type="primary" :loading="submit_clicked" @click="submit" id="submitButton">Submit</el-button>
+              <el-button type="primary" :loading="submit_clicked" @click="showTranslatedDocx" id="showTranslatedButton">Show Translated Docx</el-button>
+            </div>
+          </div>
         </div>
 
         <div class="modal" v-if="showTranslated">
@@ -432,8 +434,6 @@ export default {
 }
 
 .userInput {
-    width: 70vw;
-    height: 6vh;
     margin: 0 auto;
     padding: 10px;
     text-align: left;
@@ -443,8 +443,6 @@ export default {
 }
 
 .userOutput {
-    width: 70vw;
-    height: 6vh;
     margin: 0 auto;
     padding: 10px;
     text-align: left;
@@ -588,6 +586,7 @@ tbody tr:nth-child(odd) {
   display: table;
   clear: both;
 }
+
 
 </style>
   

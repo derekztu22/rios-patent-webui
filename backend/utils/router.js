@@ -396,4 +396,16 @@ app.post('/docxtranslate', async (req, res, next) => { req.setTimeout(0); next()
     res.send(response.data)
 })
 
+app.get('/collect', async (req, res) => {
+    logger.info("Call /collect");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    json = req.query.json;
+    payload = {
+        "name" : Math.random().toString().slice(2,12),
+        "json": json
+    }
+    response = await axios.post(global.collectRouter, payload)
+    res.send(response.data);
+})
+
 module.exports = app
