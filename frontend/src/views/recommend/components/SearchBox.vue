@@ -25,6 +25,7 @@ export default {
   },
   methods: {
     async getRecommendation() {
+      this.$emit("setLoading", true);
       const response = await axios.get(r_const.queryRecommendPatent,
         {
           params: {
@@ -33,6 +34,7 @@ export default {
           }
         });
       console.log(response.data);
+      this.$emit("setLoading", false);
       this.$emit("showRecommendation", response.data.recommended_patents);
     },
   },

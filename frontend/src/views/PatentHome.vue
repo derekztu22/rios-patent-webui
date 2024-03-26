@@ -94,12 +94,12 @@
             <r-editor ref="childEditor" @openNotification="openNotification" @setOutput="setOutput"
               @setResponseLoading="setResponseLoading" @setTable="setTable"></r-editor>
           </el-tab-pane>
+          <el-tab-pane label="Spark Response" name="response">
+            <r-response ref="responseTab"></r-response>
+          </el-tab-pane>
           <el-tab-pane label="RIOS SQLChat" name="sqlgen">
             <r-sqlgen ref="sqlGenTab" @openNotification="openNotification" @setTable="setTable"
               @clearTable="clearTable"></r-sqlgen>
-          </el-tab-pane>
-          <el-tab-pane label="Spark Response" name="response">
-            <r-response ref="responseTab"></r-response>
           </el-tab-pane>
           <el-tab-pane label="Execution Result" name="result">
             <r-table ref="resultTab"></r-table>
@@ -266,6 +266,11 @@ export default {
         )
       }
     },
+    async maintaining() {
+      this.$alert('Maintaining...', 'Error', {
+        confirmButtonText: 'OK',
+      });
+    },
     copyFilePath(tablePath) {
       var input = document.createElement('input')
       input.value = tablePath;
@@ -278,6 +283,7 @@ export default {
   },
   mounted() {
     this.refreshTableList()
+    // this.maintaining()
   }
 }
 </script>

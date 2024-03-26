@@ -3,6 +3,7 @@ const fs = require('fs')
 const { promisify } = require('util');
 const logger = require('./log')
 const exec = promisify(require('child_process').exec)
+const { Parser } = require('@json2csv/plainjs')
 
 var templateBegin, templateEnd;
 var HDFSFileList = {};
@@ -119,6 +120,32 @@ function pollCheck(queryID, taskList, taskName) {
     return result
 }
 
+function writeCsvToDisk(taskID, JSONString) {
+    const csvParser = new Parser()
+    try {
+        const csv = csvParser.parse(JSONString)
+        const csvFile = `./temp/TaskData/${taskID}.csv`
+        fs.open(csvFile, "w", (err, fd) => {
+            if (err) {
+                logger.error(err.message);
+            } else {
+                fs.write(fd, csv, (err, bytes) => {
+                    if (err) {
+                        logger.error(err.message);
+                    } else {
+                        logger.debug(bytes + ` bytes written to ${csvFile}`);
+                    }
+                })
+            }
+        })
+        return csv
+    }
+    catch {
+        logger.error("Error parsing JSON to CSV");
+        return "";
+    }
+}
+
 
 setTimeout(refreshHDFSFileList, 0)
 
@@ -129,5 +156,6 @@ module.exports = {
     loadTemplateFromDisk,
     pollCheck,
     GenNonDuplicateID,
-    addSpaces
+    addSpaces,
+    writeCsvToDisk
 }

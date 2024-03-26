@@ -9,7 +9,7 @@
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" icon="el-icon-chat-dot-round" @click="sqlGen" id="submitBtn">Gen SQL</el-button>
-                <el-button type="primary" icon="el-icon-upload" @click="hiveExec" id="submitBtn">Run SQL</el-button>
+                <el-button type="primary" icon="el-icon-upload" @click="sqlExec" id="submitBtn">Run SQL</el-button>
                 <el-button type="success" @click="autoRunPhase1" id="submitBtn">Autorun</el-button>
             </el-form-item>
         </el-form>
@@ -104,67 +104,37 @@ export default {
             }
         },
 
-        async hiveExec() {
-            this.hiveQueryID = utils_func.GenNonDuplicateID(24)
+        async sqlExec() {
             this.hiveLoading = true
+            this.$emit("openNotification", "info", "Server Response", "SQL Running");
             let sqlGenResponse = document.getElementById("sqlGenResponse")
-            await axios.get(r_const.queryExecHive,
+            let response = await axios.get(r_const.queryExecSQL,
                 {
                     params: {
-                        queryID: this.hiveQueryID,
                         content: sqlGenResponse.value
                     }
                 });
-            this.$emit("openNotification", "info", "Server Response", "Hive Running");
-            this.queryHiveExecStatus()
-        },
-
-        async queryHiveExecStatus() {
-            const response = await axios.get(r_const.queryHiveExecStatus,
-                {
-                    params: {
-                        queryID: this.hiveQueryID,
-                    }
-                });
-            var nodeRes = response.data
-            var hiveRes = nodeRes.data
-            if (nodeRes.status) {
-                if (hiveRes.status) {
-                    this.$emit("openNotification", "success", "Server Response", "Finished");
-                    if (hiveRes.sparkLikeJson && hiveRes.sparkLikeJson.length > 0) {
-                        this.$emit("setTable", hiveRes.sparkLikeJson, this.hiveQueryID)
-                    }
-                    else {
-                        this.$emit("clearTable")
-                    }
+            if (response.data.status) {
+                this.$emit("openNotification", "success", "Server Response", "Finished");
+                if (response.data.num_record > 0) {
+                    this.$emit("setTable", response.data.raw_data, response.data.taskid)
                 }
                 else {
-                    this.$emit("openNotification", "error", "Server Response", `Error Code ${hiveRes.code}`)
                     this.$emit("clearTable")
                 }
-                this.hiveLoading = false
-                let hiveResponse = document.getElementById("hiveResponse")
-                hiveResponse.value = hiveRes.content
-                this.sqlGenFinished = false
+                document.getElementById("hiveResponse").value = `Fetched ${response.data.num_record} results.\n\n${response.data.es_result}`
+            } else {
+                this.$emit("openNotification", "error", "Server Response", "Error");
+                this.$emit("clearTable")
+                document.getElementById("hiveResponse").value = JSON.stringify(response.data.es_result)
             }
-            else {
-                setTimeout(this.queryHiveExecStatus, r_const.queryTaskStatusGap)
-            }
+            this.hiveLoading = false
         },
 
         async autoRunPhase1() {
             this.sqlGen()
-            this.autoRunPhase2()
+            this.sqlExec()
         },
-
-        async autoRunPhase2() {
-            if (this.sqlGenFinished) {
-                this.hiveExec()
-            }
-            else {
-                setTimeout(this.autoRunPhase2, r_const.queryTaskStatusGap / 10)
-            }
-        }
     },
 };
 </script>
