@@ -4,6 +4,10 @@
     </div>
     <div class="pubNum">Publication Number: {{ pubNum }}</div>
     <div class="abstract">{{ abstract }}</div>
+    <div class="feedback-buttons" id="feedback-buttons">
+        <input type="radio" :name="'feedback' + index.toString()" value="Good">Good
+        <input type="radio" :name="'feedback' + index.toString()" value="Bad">Bad
+    </div>
   </div>
 </template>
 
@@ -21,6 +25,10 @@ export default {
     },
     abstract: {
       type: String,
+      required: true
+    },
+    index: {
+      type: Number,
       required: true
     }
   }
@@ -69,4 +77,11 @@ export default {
   font-size: 16px;
   line-height: 1.5em;
 }
+
+.feedback-buttons{
+  display: inline-block;
+  margin-top: 5px;
+
+}
+
 </style>

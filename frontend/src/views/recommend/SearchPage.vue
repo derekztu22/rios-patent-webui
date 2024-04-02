@@ -8,9 +8,11 @@
     </div>
     <div v-loading="recommendLoading">
       <div class="recommendations">
+        <br>
+        <el-button type="primary" icon="el-icon-upload" @click="saveExec" id="saveBtn">Save Feedback</el-button>
         <div class="recommendation-list">
-          <recommendation-item v-for="item in recommendations" :key="item.pubNum" :title="item.title"
-            :pubNum="item.pubNum" :abstract="item.abstract"></recommendation-item>
+          <recommendation-item v-for="(item, index) in recommendations" :key="item.pubNum" :title="item.title"
+            :pubNum="item.pubNum" :abstract="item.abstract" :index=index></recommendation-item>
         </div>
       </div>
     </div>
@@ -30,6 +32,7 @@ export default {
   data() {
     return {
       recommendations: [],
+      recommendation_feedback: [],
       recommendLoading: false
     };
   },
@@ -37,7 +40,28 @@ export default {
     async setLoading(status) {
       this.recommendLoading = status
     },
-
+    async saveExec() {
+      let recitem_index = 3
+      var recommendation_items = document.getElementsByClassName("recommendation-item ");
+      for (let i=0; i< recommendation_items.length; i++) {
+        let feedback = recommendation_items[i].children[recitem_index].children;
+        let title = recommendation_items[i].children[0].children[0].innerHTML; 
+        let pubNum = recommendation_items[i].children[1].innerHTML.split(": ")[1]; 
+        let abstract = recommendation_items[i].children[2].innerHTML;
+        for (let j=0; j<feedback.length; j++) {
+          if (feedback[j].checked) {
+            let sentiment = feedback[j].value;
+            this.recommendation_feedback.push({
+              title,
+              pubNum,
+              abstract,
+              sentiment
+            });
+          }
+        }
+      }
+      console.log(this.recommendation_feedback[0].sentiment);
+    },
     async showRecommendation(items) {
       this.recommendations = [];
       for (let i = 0; i < items.length; i++) {

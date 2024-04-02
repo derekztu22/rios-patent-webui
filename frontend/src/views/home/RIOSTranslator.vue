@@ -217,6 +217,7 @@ export default {
         async translate() {
           try {
             this.translate_clicked = true;
+            this.out_text = " ";
             const response = await axios.get(r_const.queryTranslate,
                                             {params: {text: this.in_text,
                                                       in_lang: this.in_lang,
