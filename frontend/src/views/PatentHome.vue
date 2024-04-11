@@ -113,6 +113,9 @@
           <el-tab-pane label="RIOS Collect" name="collect">
             <r-collect ref="collectTab"></r-collect>
           </el-tab-pane>
+          <el-tab-pane label="RIOS Ask" name="ask">
+            <r-ask ref="searchTab"></r-ask>
+          </el-tab-pane>
           <!-- <el-tab-pane v-for="(item) in editableTabs" :key="item.name" :label="item.title" :name="item.name">
             <component :is="item.content"></component>
           </el-tab-pane> -->
@@ -132,6 +135,7 @@ import SearchPage from './recommend/SearchPage.vue';
 import SQLGenPage from './home/RIOSText2sql.vue'
 import RIOSTranslator from './home/RIOSTranslator.vue'
 import RIOSCollect from './home/RIOSCollect.vue'
+import RIOSAsk from './home/RIOSAsk.vue'
 import * as r_const from '@/router/consts'
 import axios from 'axios';
 
@@ -143,7 +147,8 @@ export default {
     "r-search": SearchPage,
     'r-sqlgen': SQLGenPage,
     'r-translator': RIOSTranslator,
-    'r-collect': RIOSCollect
+    'r-collect': RIOSCollect,
+    'r-ask': RIOSAsk
   },
   data() {
     return {

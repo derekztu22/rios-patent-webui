@@ -66,7 +66,7 @@
         <br>
         <div class="container">
           <div class="form-group row">
-            <label class="col-md-4 col-form-label text-md-right"><font size="+2"><b>Translate .docx</b></font></label>
+            <label class="col-md-4 col-form-label text-md-right"><font size="+2"><b>Translate docx/pdf</b></font></label>
             <br>
             <div class="col-md-6">
               <div class="custom-file">
@@ -298,6 +298,7 @@ export default {
           }).then((response) => {
             // looping over each element in response.data (each converted bytesIO string)
             var idx=0;
+            this.translated_seqs = [];
             for (let i=0; i < response.data['results_in'].length; i++) {
               const newObj = {};
               newObj['in'] = response.data['results_in'][i];
