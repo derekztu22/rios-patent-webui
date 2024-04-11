@@ -408,4 +408,20 @@ app.get('/collect', async (req, res) => {
     res.send(response.data);
 })
 
+app.get('/ask', async (req, res) => {
+    logger.info("Call /ask");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    const api = axios.create({
+        withCredentials: true,
+        xsrfCookieName: 'csrf_access_token',
+        xsrfHeaderName: "x-csrftoken"
+    });
+    text = req.query.text
+    payload = {
+        "text": text,
+    }
+    response = await api.get(global.askRouter, { params: payload })
+    res.send(response.data)
+})
+
 module.exports = app

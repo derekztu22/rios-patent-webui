@@ -19,6 +19,7 @@ export const queryLogin =         "https://rios.malloc.fun:31081/login";
 export const queryLogout =        "https://rios.malloc.fun:31081/logout";
 export const queryDocxTranslate = "https://rios.malloc.fun:31081/docxtranslate";
 export const queryCollect =       "https://rios.malloc.fun:31081/collect";
+export const queryAsk =           "https://rios.malloc.fun:31081/ask";
 
 export const queryTaskStatusGap = 1000;
 export const defaultShowResultNum = 10;
