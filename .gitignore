@@ -6,6 +6,9 @@ task_data
 test
 *.out
 
+log/
+temp/
+
 # Cert files
 **/*.pem
 
