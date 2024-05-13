@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/bash
+
+source $HOME/.bashrc 
 
 cd "$(dirname "$0")"
 echo "$(pwd)"
