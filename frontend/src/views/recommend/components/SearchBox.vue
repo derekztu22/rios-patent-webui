@@ -10,10 +10,12 @@
     </div>
   </div>
 </template>
-  
+
 <script>
 import axios from 'axios';
 import * as r_const from '@/router/consts'
+import * as utils_func from '@/utils/func'
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 export default {
   name: 'SearchBox',
@@ -26,21 +28,36 @@ export default {
   methods: {
     async getRecommendation() {
       this.$emit("setLoading", true);
-      const response = await axios.get(r_const.queryRecommendPatent,
+      let queryID = utils_func.GenNonDuplicateID(24)
+      await axios.get(r_const.queryPostRecommend,
         {
           params: {
+            queryID,
             patentID: this.query,
             sequence: this.radio1.toLowerCase()
           }
         });
-      console.log(response.data);
+      let recommended_patents = null;
+      for (let i = 0; i < 65536; i++) {
+        const response = await axios.get(r_const.queryGetRecommend,
+          {
+            params: {
+              queryID
+            }
+          });
+        if (response.data.status) {
+          recommended_patents = response.data.data.recommended_patents
+          break
+        }
+        await sleep(r_const.queryTaskStatusGap)
+      }
       this.$emit("setLoading", false);
-      this.$emit("showRecommendation", response.data.recommended_patents);
+      this.$emit("showRecommendation", recommended_patents);
     },
   },
 };
 </script>
-  
+
 <style scoped>
 .search-box {
   display: flex;
@@ -92,4 +109,3 @@ button[disabled] {
   cursor: default;
 }
 </style>
-  

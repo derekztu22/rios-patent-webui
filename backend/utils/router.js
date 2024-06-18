@@ -18,32 +18,33 @@ const { promisify } = require('util')
 const unlinkAsync = promisify(fs.unlink)
 
 const mult_storage = multer.diskStorage({
-  destination: (req, file, cb)=>{
-    cb(null, 'uploads/')
-  },
-  //filename: (req, file, cb)=>{
-  //  cb(null, file.originalname)
-  //}
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/')
+    },
+    //filename: (req, file, cb)=>{
+    //  cb(null, file.originalname)
+    //}
 })
 
 
 const allowedFileExtensions = ['docx', 'pdf', 'xlsx', 'mp4', 'png'];
 
-const upload = multer({storage: mult_storage,
-                       limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-                       fileFilter: (req, file, cb) => {
-                         const extension = file.originalname.split('.').pop();
-                         console.log(extension);
-                         if (allowedFileExtensions.includes(extension)) {
-                             cb(null, true);
-                         } else {
-                             cb(null, false);
-                             const err = new Error('Only .docx, .pdf and .xlsx format allowed!')
-                             err.name = 'ExtensionError'
-                             return cb(err);
-                         }
-                       }
-                     })
+const upload = multer({
+    storage: mult_storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        const extension = file.originalname.split('.').pop();
+        console.log(extension);
+        if (allowedFileExtensions.includes(extension)) {
+            cb(null, true);
+        } else {
+            cb(null, false);
+            const err = new Error('Only .docx, .pdf and .xlsx format allowed!')
+            err.name = 'ExtensionError'
+            return cb(err);
+        }
+    }
+})
 
 //const upload = multer({ dest: 'uploads/' })
 
@@ -51,6 +52,7 @@ const upload = multer({storage: mult_storage,
 
 var taskList = {};
 var llmResponseList = {};
+var recommendList = {};
 
 app.get('/getHDFSTableList', async (req, res) => {
     logger.info("Call /getHDFSTablesList");
@@ -252,8 +254,9 @@ app.get('/execSQL', async (req, res) => {
         });
 })
 
-app.get('/recommend', async (req, res) => {
-    logger.info("Call /recommend");
+app.get('/postRecommend', async (req, res) => {
+    logger.info("Call /postRecommend");
+    queryID = req.query.queryID
     res.setHeader("Access-Control-Allow-Origin", "*");
     patentID = req.query.patentID
     sequence = req.query.sequence
@@ -263,9 +266,33 @@ app.get('/recommend', async (req, res) => {
         "after_or_before": sequence,
         "comb_size": combSize
     }
+    res.send({ status: true })
     response = await axios.post(global.recommendRouter, payload)
-    res.send(response.data)
+    recommendList[queryID] = response.data
 })
+
+app.get('/getRecommend', async (req, res) => {
+    logger.info("Call /getRecommend");
+    queryID = req.query.queryID
+    checkData = func.pollCheck(queryID, recommendList, "recommendList")
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send(checkData)
+})
+
+// app.get('/recommend', async (req, res) => {
+//     logger.info("Call /recommend");
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     patentID = req.query.patentID
+//     sequence = req.query.sequence
+//     combSize = "2"
+//     payload = {
+//         "patent_number": patentID,
+//         "after_or_before": sequence,
+//         "comb_size": combSize
+//     }
+//     response = await axios.post(global.recommendRouter, payload)
+//     res.send(response.data)
+// })
 
 
 app.get('/translatorLogin', async (req, res) => {
@@ -422,7 +449,7 @@ app.get('/collectData', async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     json = req.query.json;
     payload = {
-        "name" : Math.random().toString().slice(2,12),
+        "name": Math.random().toString().slice(2, 12),
         "json": json
     }
     response = await axios.post(global.collectRouter, payload)
