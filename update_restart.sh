@@ -29,10 +29,13 @@ fi
 
 sleep 5
 
+# export PATH=/work/stu/dwfeng/tools/build/local/node/bin:$PATH
 cd backend
+npm install
 nohup node server.js > ../log/backend.log 2>&1 &
 echo $! > ../temp/backend.pid
 
 cd ../frontend
+npm install
 nohup npm run serve > ../log/frontend.log 2>&1 &
 echo $! > ../temp/frontend.pid
