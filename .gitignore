@@ -9,8 +9,6 @@ test
 log/
 temp/
 
-frontend/vue.config.js
-
 # Cert files
 **/*.pem
 
