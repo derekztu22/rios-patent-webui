@@ -296,8 +296,7 @@ export default {
     handleFileUpload() {
       this.files = this.$refs.file.files
     },
-    setProgressBar(value) {
-
+    setProgressBar(value, text) {
       var elem = document.getElementById("bar");
       elem.style.width = value + "%";
     },
@@ -305,7 +304,7 @@ export default {
       this.submitClicked = true;
       this.showProgress = true;
       await delay(1000);
-      this.setProgressBar(0);
+      this.setProgressBar(0, "");
       let formData = new FormData()
       for (var j = 0; j < this.files.length; j++) {
         formData.append('file', this.files[j])
@@ -314,7 +313,7 @@ export default {
       for (var i = 0; i < this.files.length; i++) {
         names.push(this.files[i].name)
       }
-      this.setProgressBar(10);
+      this.setProgressBar(10, "Reading files...");
       await axios.post(
         r_const.queryScalarUpload,
         formData,
@@ -326,13 +325,13 @@ export default {
           },
         }
       )
-      this.setProgressBar(60);
+      this.setProgressBar(60, "Files can be searched by text.");
       await axios.get(
         r_const.queryVectorUpload,
         { params: { fname: names } },
         { withCredentials: true }
       )
-      this.setProgressBar(100);
+      this.setProgressBar(100, "Files can be searched by semantics.");
       this.submitClicked = false
     },
     async getFile() {
@@ -374,7 +373,7 @@ export default {
       })
       const fdata = response.data.fdata
 
-      if (fname.includes('.pdf')) {
+      if (fname.includes('.pdf') || fname.includes('.xlsx')) {
         this.showPDF = true
         window.onload = this.setupPdf(atob(fdata));
       } else if (fname.includes('.mp4')) {
