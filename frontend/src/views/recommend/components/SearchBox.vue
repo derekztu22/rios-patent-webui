@@ -1,8 +1,8 @@
 <template>
   <div>
     <el-radio-group v-model="radio1">
-      <el-radio-button value="Before"></el-radio-button>
-      <el-radio-button value="After"></el-radio-button>
+      <el-radio-button value="Before">Before</el-radio-button>
+      <el-radio-button value="After">After</el-radio-button>
     </el-radio-group>
     <div class="search-box">
       <input

@@ -5,10 +5,10 @@ const http = require('http')
 var fs = require('fs');
 const https = require('https')
 
-var privateKey = fs.readFileSync('cert/key.pem', 'utf8');
-var certificate = fs.readFileSync('cert/cert.pem', 'utf8');
-var credentials = { key: privateKey, cert: certificate };
+// var privateKey = fs.readFileSync('cert/key.pem', 'utf8');
+// var certificate = fs.readFileSync('cert/cert.pem', 'utf8');
+// var credentials = { key: privateKey, cert: certificate };
 
 // app.listen(global.port, () => { logger.info(`node backend listening on port ${global.port}`) })
-// http.createServer(app).listen(global.port, () => { logger.info(`http node backend listening on port ${global.port}`) })
-https.createServer(credentials, app).listen(global.port, () => { logger.info(`https node backend listening on port ${global.port}`) })
+http.createServer(app).listen(global.port, () => { logger.info(`http node backend listening on port ${global.port}`) })
+// https.createServer(credentials, app).listen(global.port, () => { logger.info(`https node backend listening on port ${global.port}`) })
