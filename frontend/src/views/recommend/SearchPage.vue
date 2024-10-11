@@ -1,10 +1,18 @@
 <template>
   <div class="search-page">
 
+
      <el-form class="patent-header" :inline="true">
          <el-form-item>
-         <div class="patent-header-text"> 专利推荐系统 </div>
+           <div class="rios-header">
+             Patent Box
+             <img src="@/assets/CerebAI.svg" alt="Logo" width="38.5" height="35.5"/>
+           </div>
          </el-form-item>
+         <el-form-item>
+           <div class="patent-header-text"> 专利推荐系统 </div>
+         </el-form-item>
+
          <el-form-item>
             <el-dropdown @command="handleCommand" :disabled="disableDropdown">
               <el-button class="dropdown" type="primary">
@@ -27,48 +35,65 @@
         <el-tabs class="demo-tabs" :stretch="true" @tab-click="handleTabClick">
 
           <el-tab-pane label="作用">
-
+            <template #label>
+            <el-tooltip slot="label" content="推荐不同的专利"><span>作用</span></el-tooltip>
+            </template>
             <div class="search-container">
               <invalid-box v-if="showInvalid"
-                @showRecommendation="showRecommendation"
+                @showRecommendation="showRecommendation" 
+                @addRecommendation="addRecommendation"
                 @setLoading="setLoading"></invalid-box>
               <gen-box v-if="showGeneral"
                 @showRecommendation="showRecommendation"
+                @addRecommendation="addRecommendation"
                 @setLoading="setLoading"></gen-box>
               <id-box v-if="showInfringement"
                 @showRecommendation="showRecommendation"
+                @addRecommendation="addRecommendation"
                 @setLoading="setLoading"></id-box>
                 <br />
             </div>
           </el-tab-pane>
 
           <el-tab-pane label="专利标签">
+            <template #label>
+            <el-tooltip slot="label" content="搜索自定义的专利标签"><span>专利标签</span></el-tooltip>
+            </template>
             <div class="search-container">
               <label-box  v-if="showLabels"
                 @showRecommendation="showRecommendation"
+                @addRecommendation="addRecommendation"
                 @setLoading="setLoading"></label-box>
                 <br />
             </div>
           </el-tab-pane>
 
           <el-tab-pane label="专门知识">
+            <template #label>
+            <el-tooltip slot="label" content="搜索自定义的专门知识"><span>专门知识</span></el-tooltip>
+            </template>
             <div class="search-container">
               <ek-box v-if="showEK" 
                 @showRecommendation="showRecommendation"
+                @addRecommendation="addRecommendation"
                 @setLoading="setLoading"></ek-box>
                 <br />
             </div>
           </el-tab-pane>
 
           <el-tab-pane label="RPC">
+            <template #label>
+            <el-tooltip slot="label" content="搜索自定义的RPC">  <span>RPC</span></el-tooltip>
+            </template>
             <div class="search-container">
               <rpc-box v-if="showRPC"
                 @showRecommendation="showRecommendation"
+                @addRecommendation="addRecommendation"
                 @setLoading="setLoading"></rpc-box>
                 <br />
             </div>
-
           </el-tab-pane>
+
         </el-tabs>
       </el-header>
     </el-container>
@@ -120,6 +145,10 @@ import LabelBox from './components/LabelsBox.vue';
 import EKBox from './components/EKBox.vue';
 import RPCBox from './components/RPCBox.vue';
 import RecommendationItem from './components/RecommendationItem.vue'
+import axios from 'axios'
+import * as r_const from '@/router/consts'
+
+
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 export default {
@@ -165,7 +194,6 @@ export default {
   methods: {
     changeDropdownColor(color) {
       let dropdown = document.getElementsByClassName("dropdown")[0];
-      console.log(dropdown);
       if (color == "blue") {
         dropdown.style.backgroundColor = "#0078d7";
       } else if (color == "gray") {
@@ -285,8 +313,24 @@ export default {
       console.log(recommendation_items);
       this.feedback_clicked = false;
     },
+    addRecommendation(items, index) {
+      for (let i = 0; i < items.length; ++i) {
+        let pubNum = items[i].publication_number;
+        let proposition = items[i].method;
+        let problem = items[i].problem;
+        let result = items[i].effect;
+        let tags = "当前没有标签。。。";
+        this.recommendations[i + index*this.perPage] = {
+          pubNum,
+          proposition,
+          problem,
+          result,
+          tags
+        }
+      }
+    },
     async showRecommendation(items, query) {
-      this.recommendations = []
+      this.recommendations = new Array(200);
       this.slicedRecommendations = [];
       this.query=query;
       this.showInvalid=false;
@@ -301,13 +345,13 @@ export default {
         let problem = items[i].problem;
         let result = items[i].effect;
         let tags = "当前没有标签。。。";
-        this.recommendations.push({
+        this.recommendations[i] = {
           pubNum,
           proposition,
           problem,
           result,
           tags
-        })
+        }
       }
       if (this.showInvalid || this.showGeneral || this.showInfringement) {
         this.functionBackup = this.recommendations; 
@@ -320,32 +364,70 @@ export default {
       }
       this.slicedRecommendations = this.recommendations.slice(0, this.perPage);
       this.showFeedback = true;
-      this.totalRecs = Math.ceil(this.recommendations.length/this.perPage);
-      //for (let i = 0; i < items.length; i++) {
-      //  let pubNum = items[i].publication_number
-      //  let title = items[i].title
-      //  let abstract = items[i].abstract
-      //  this.recommendations.push({
-      //    title,
-      //    pubNum,
-      //    abstract,
-      //  })
-      //}
+      //this.totalRecs = Math.ceil(this.recommendations.length/this.perPage);
+      this.totalRecs = 20;
     },
-    nextNRecs(n) {
+    indexToRecommended(items) {
+      for (let i =0; i< items.length; ++i){
+        let pubNum = items[i].publication_number;
+        let proposition = items[i].method;
+        let problem = items[i].problem;
+        let result = items[i].effect;
+        let tags = "当前没有标签。。。";
+        this.recommendations[i+ ((this.currPage-1)*this.perPage)] = {
+          pubNum,
+          proposition,
+          problem,
+          result,
+          tags
+        }
+      }
+    },
+    async nextNRecs(n) {
       this.currPage = n;
+      if (this.recommendations[(this.currPage-1)*this.perPage] == null) {
+        const response = await axios.get(
+            r_const.queryPostRecommendInv,
+            { params: { patentID: this.query, pageNum: (this.currPage-1)*10 + 1, pageSize: 10 } },
+          { withCredentials: true }
+        )
+        let recommended_patents = null;
+        recommended_patents = response.data;
+        this.indexToRecommended(recommended_patents);
+      }
+
       this.slicedRecommendations = this.recommendations.slice((n-1)*this.perPage, n*this.perPage);
     },
-    nextPage() {
+    async nextPage() {
       if (this.currPage < this.totalRecs) {
         this.currPage++;
+        if (this.recommendations[(this.currPage-1)*this.perPage] == null) {
+          const response = await axios.get(
+              r_const.queryPostRecommendInv,
+              { params: { patentID: this.query, pageNum: (this.currPage-1)*10 + 1, pageSize: 10 } },
+            { withCredentials: true }
+          )
+          let recommended_patents = null;
+          recommended_patents = response.data;
+          this.indexToRecommended(recommended_patents);
+        }
         this.slicedRecommendations = this.recommendations.slice((this.currPage-1)*this.perPage,
                                                                 this.currPage*this.perPage);
       }
     },
-    prevPage() {
+    async prevPage() {
       if (this.currPage > 1) {
         this.currPage--;
+        if (this.recommendations[(this.currPage-1)*this.perPage] == null) {
+          const response = await axios.get(
+              r_const.queryPostRecommendInv,
+              { params: { patentID: this.query, pageNum: (this.currPage-1)*10 + 1, pageSize:10 } },
+            { withCredentials: true }
+          )
+          let recommended_patents = null;
+          recommended_patents = response.data;
+          this.indexToRecommended(recommended_patents);
+        }
         this.slicedRecommendations = this.recommendations.slice((this.currPage-1)*this.perPage,
                                                                 this.currPage*this.perPage);
       }
@@ -360,12 +442,12 @@ export default {
   flex-direction: column;
   /* justify-content: center; */
   align-items: center;
-  height: 74vh;
-  width: 80vw;
+  height: 90%;
+  width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  border: 2px solid #d4d3d3e6;
-  border-radius: 5px;
+  /*border: 2px solid #d4d3d3e6;
+  border-radius: 5px;*/
 }
 
 .search-header {
@@ -388,13 +470,14 @@ export default {
   flex-direction: column;
   align-items: center;
   min-height: 40px;
+  width:100%;
 }
 
 .recommendation-list {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 80%;
+  width: 100%;
   margin-top: 20px;
 }
 
@@ -447,7 +530,7 @@ export default {
 }
 
 .patent-header {
-  margin-top:2%;
+  width:100%;
 }
 
 .patent-header-text {
@@ -493,8 +576,8 @@ button.link {
   float:center;
   display: flex;
   flex-direction: column;
+  width:100%;
 
 }
-
 
 </style>

@@ -283,15 +283,31 @@ app.get('/getRecommend', async (req, res) => {
     res.send(checkData)
 })
 
+app.get('/postRecommendInv', async (req, res) => {
+    logger.info("Call /postRecommend");
+    queryID = req.query.queryID
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    patentID = req.query.patentID
+    pageNum = req.query.pageNum;
+    pageNum = req.query.pageNum;
+    pageSize = req.query.pageSize;
+    //res.send({ status: true })
+    payload = {
+        "patent_number": patentID,
+        "page_begin": pageNum,
+        "page_size": pageSize
+    }
+    const response = await axios.post(global.recommendInvRouter, payload)
+    res.send(response.data);
+})
+
 app.get('/getRecommendInv', async (req, res) => {
     logger.info("Call /getRecommendInv");
     res.setHeader("Access-Control-Allow-Origin", "*");
-    patentID = req.query.patentID
-    payload = {
-        "patent_number": patentID,
-    }
-    response = await axios.post(global.recommendInvRouter, payload);
-    res.send(response.data)
+    queryID = req.query.queryID
+    checkData = func.pollCheck(queryID, recommendList, "recommendList")
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send(checkData)
 })
 
 // app.get('/recommend', async (req, res) => {

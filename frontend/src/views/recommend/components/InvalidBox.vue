@@ -30,19 +30,26 @@ export default {
     async getRecommendation() {
       this.$emit('setLoading', true)
       this.loading=true;
-      const response = await axios.get(
-          r_const.queryRecommendInv, 
-          { params: { patentID: this.query } },
-        { withCredentials: true }
-      )
-      let recommended_patents = []
-      //for (let i = 0; i<response.data.lenght; ++i) {
-      //  
-      //}
-      recommended_patents = response.data;
-      this.loading=false;
-      this.$emit('setLoading', false)
-      this.$emit('showRecommendation', recommended_patents, this.query)
+      let queryID = utils_func.GenNonDuplicateID(24)
+      let recommended_patents = null;
+      let _pageSize = 10;
+      for ( let i = 0; i < 20; ++i ) {
+        const response = await axios.get(
+            r_const.queryPostRecommendInv, 
+            { params: { patentID: this.query, pageNum: i*_pageSize + 1 , pageSize: _pageSize} },
+          { withCredentials: true }
+        )
+        recommended_patents = response.data;
+
+        this.loading=false;
+        this.$emit('setLoading', false)
+        if ( i==0 ) {
+          this.$emit('showRecommendation', recommended_patents, this.query)
+        } else {
+          this.$emit('addRecommendation', recommended_patents, i)
+        }
+      }
+      //this.$emit('showRecommendation', recommended_patents, this.query)
     },
   },
 }

@@ -1,8 +1,9 @@
 <template>
-  <el-container>
+
+  <el-container class="recommend-cell">
     <el-aside>
-      <div class="sidebar">
-        <button class="sidebarLinks" @click="openPopup('label', $event)">专利标签</button>
+      <el-button id="ctrlButton" class="sidebarCtrlButton" @click="ctrlSidebar">+</el-button>
+      <div class="sidebar" v-if="showSide">
         <button class="sidebarLinks" @click="openPopup('expert', $event)">专门知识</button>
         <button class="sidebarLinks" @click="openPopup('rpc', $event)">RPC</button>
         <button class="sidebarLinks" @click="openPopup('other', $event)">此外</button>
@@ -62,13 +63,50 @@
 
       <div class="patent-table">
         <div class="pubNum"><a :href="'https://patents.google.com/patent/' + pubNum.replaceAll('-', '') + '/en'" target="_blank" rel="noopener">{{ pubNum }}</a>   </div>
-        <div class="field"> <div class="fieldname"> 方案：</div> <div class="patent-cell"> {{ proposition }} </div></div>
-        <div class="field"> <div class="fieldname"> 问题：</div> <div class="patent-cell"> {{ problem }} </div></div>
-        <div class="field"> <div class="fieldname"> 效果：</div><div class="patent-cell"> {{ result }} </div></div>
-        <div class="field"> <div class="fieldname"> 标签：</div> <div class="patent-cell"> {{ tags }} </div></div>
+
+
+        <div class="field"> 
+          <div class="fieldname"> 方案：</div>
+            <el-button :id="'propositionButton' + index.toString()" class="propositionButton" @click="ctrlProposition(index.toString())">+</el-button>
+            <div :id="'propositionText' + index.toString()" class="patent-cell"> 
+              {{ proposition }}
+            </div>
+        </div>
+
+        <div class="field">
+          <div class="fieldname"> 问题：</div>
+            <el-button :id="'problemButton' + index.toString()" class="problemButton" @click="ctrlProblem(index.toString())">+</el-button>
+            <div :id="'problemText' + index.toString()" class="patent-cell">
+              {{ problem }}
+            </div>
+        </div>
+
+
+        <div class="field"> 
+          <div class="fieldname"> 效果：</div>
+            <el-button :id="'resultButton' + index.toString()" class="resultButton" @click="ctrlResult(index.toString())">+</el-button>
+            <div :id="'resultText'+ index.toString()" class="patent-cell">
+              {{ result }} 
+            </div>
+        </div>
+
+
+        <div class="field"> <div class="fieldname"> 标签：</div>
+            <el-button @click="addTag">+</el-button>
+          <div class="patent-cell">
+            {{ tags }} 
+            <div class="tagWrapper" v-for="(input,k) in newTags" :key="k">
+              <div class="tag">
+                <input type="text" class="form-control" v-model="input.tag"/>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div> 
 
-      <!--- <el-button class="translateBtn"> </el-button> ---> 
+      <el-button class="translateBtn" @click="translateToChinese('index')"> 翻译</el-button>
+
       <div class="feedback-buttons" id="feedback-buttons">
           (不相似) <input type="radio" :name="'feedback' + index.toString()" value="0">0
           <input type="radio" :name="'feedback' + index.toString()" value="1">1
@@ -127,11 +165,65 @@ export default {
       showExpert : false,
       showRPC : false,
       showOther : false,
+      showSide: false,
       mouseX: 0,
-      mouseY: 0
+      mouseY: 0,
+      newTags: [],
     }
   },
   methods: {
+    ctrlProposition(index) {
+      if (document.getElementById("propositionButton"+index).textContent == "-") {
+        document.getElementById("propositionText"+index).style.maxHeight="4.5em";
+        document.getElementById("propositionText"+index).style.overflow="hidden";
+        document.getElementById("propositionButton"+index).textContent="+";
+      } else {
+        document.getElementById("propositionText"+index).style.maxHeight="100em";
+        document.getElementById("propositionText"+index).style.overflow="visible";
+        document.getElementById("propositionText"+index).style.textOverflow="inherit";
+        document.getElementById("propositionButton"+index).textContent="-";
+      }
+    },
+    ctrlProblem(index) {
+      if (document.getElementById("problemButton"+index).textContent == "-") {
+        document.getElementById("problemText"+index).style.maxHeight="4.5em";
+        document.getElementById("problemText"+index).style.overflow="hidden";
+        document.getElementById("problemButton"+index).textContent="+";
+      } else {
+        document.getElementById("problemText"+index).style.maxHeight="100em";
+        document.getElementById("problemText"+index).style.overflow="visible";
+        document.getElementById("problemText"+index).style.textOverflow="inherit";
+        document.getElementById("problemButton"+index).textContent="-";
+      }
+    },
+    ctrlResult(index) {
+      if (document.getElementById("resultButton"+index).textContent == "-") {
+        document.getElementById("resultText"+index).style.maxHeight="4.5em";
+        document.getElementById("resultText"+index).style.overflow="hidden";
+        document.getElementById("resultButton"+index).textContent="+";
+      } else {
+        document.getElementById("resultText"+index).style.maxHeight="100em";
+        document.getElementById("resultText"+index).style.overflow="visible";
+        document.getElementById("resultText"+index).style.textOverflow="inherit";
+        document.getElementById("resultButton"+index).textContent="-";
+      }
+    },
+    addTag() {
+      const newTag = {tag: ''}
+      this.newTags.push(newTag);
+    },
+    ctrlSidebar() {
+      if (this.showSide) {
+        this.showSide = false
+        document.getElementById("ctrlButton").textContent="+";
+      } else {
+        this.showSide = true;
+        document.getElementById("ctrlButton").textContent="-";
+      }
+    },
+    translateToChinese(index) {
+      console.log(index);
+    },
     openPopup(type, event) {
       this.showPopup = true
       var bodyStyles = document.body.style;
@@ -182,13 +274,13 @@ export default {
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 5px;
+  min-width: 800px;
 }
 
 .sidebar {
-  float:left;
   height: 100px;
-  padding-top:5%;
   margin-right:5px;
+  width:5%
 }
 
 .sidebar button {
@@ -196,7 +288,7 @@ export default {
   text-align:center;
   width: 100%;
   height:35px;
-  margin-top: 10px;
+  margin-bottom: 10px;
   background-color: #0078d7;
   color: white;
   font-weight: bold;
@@ -275,19 +367,13 @@ export default {
  /* display: inline-block;*/
   overflow:hidden;
   text-overflow: ellipsis; 
+  overflow-wrap: break-word;
   width: 90%;
   text-align:left;
   float: right;
   max-height: 4.5em;
   line-height: 1.5em;
 }
-
-.patent-cell:hover {
-  text-overflow: inherit;
-  overflow:visible;
-  max-height: 100em;
-}
-
 
 :root {
   --button-top: 0;
@@ -334,12 +420,33 @@ export default {
 }
 
 .translateBtn {
-  margin-left: 10px;
+  display:block;
   text-align:center;
   background-color: #0078d7;
   color: white;
   font-weight: bold;
   border: 1px;
+}
+
+.recommend-cell {
+  width:100%;
+}
+
+.sidebarCtrlButton {
+  margin:0px;
+  background-color: #0078d7;
+  color: white;
+  font-weight: bold;
+}
+
+
+.tagWrapper {
+  text-align: left;
+  display:inline;
+}
+.tag {
+  display:inline;
+  margin:2px;
 }
 
 </style>

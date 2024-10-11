@@ -1,52 +1,15 @@
 <template>
-  <el-container style="height: 80vh">
-    <el-header class="rios-header">
-      <div>
+  <el-container style="height: 100vh">
+<!---
+      <div class="rios-header">
         Patent Box
-        <img src="@/assets/cereblogo.png" alt="Logo" width="77" height="71"/>
+        <img src="@/assets/cereblogo.png" alt="Logo" width="38.5" height="35.5"/>
       </div>
-    </el-header>
-
+--->
     <el-container class='patent-container'>
-      <!--- <el-tabs
-        v-model="editableTabsValue"
-        type="card"
-        @tab-remove="removeTab"> --->
 
-        <!--- <el-tab-pane label="Patent Search" name="search"> --->
-            <r-search></r-search>
-        <!--- </el-tab-pane> --->
+     <r-search></r-search>
 
-      <!---   <el-tab-pane label="Spark Executor" name="executor">
-          <r-editor
-            ref="childEditor"
-            @openNotification="openNotification"
-            @setOutput="setOutput"
-            @setResponseLoading="setResponseLoading"
-            @setTable="setTable"></r-editor>
-        </el-tab-pane>
-        <el-tab-pane label="Spark Response" name="response">
-          <r-response ref="responseTab"></r-response>
-        </el-tab-pane>
-        <el-tab-pane label="RIOS SQLChat" name="sqlgen">
-          <r-sqlgen
-            @openNotification="openNotification"
-            @setTable="setTable"
-            @clearTable="clearTable"></r-sqlgen>
-        </el-tab-pane>
-        <el-tab-pane label="Execution Result" name="result">
-          <r-table ref="resultTab"></r-table>
-        </el-tab-pane>
-        <el-tab-pane label="RIOS Translator" name="translator">
-          <r-translator></r-translator>
-        </el-tab-pane>
-        <el-tab-pane label="RIOS Collect" name="collect">
-          <r-collect></r-collect>
-        </el-tab-pane> 
-        <el-tab-pane label="RIOS FileManager" name="filemanager">
-          <r-filemanage></r-filemanage>
-        </el-tab-pane> 
-      </el-tabs> --->
     </el-container>
   </el-container>
 </template>
@@ -219,8 +182,12 @@ export default {
 }
 
 .rios-header {
-  font-size: 50px;
-  margin: 20px;
+  font-size: 30px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  margin: 10px;
+  background-color: white;
 }
 
 .el-aside {
@@ -297,9 +264,9 @@ input:checked + .slider:before {
     /* remember to set a width 
     position: absolute;
     left: 11%;
-    top: 15%;*/
+    top: 15%;
     margin-left:10%;
-    margin-top:10px;
+    margin-top:10px; */
 }
 
 
