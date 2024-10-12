@@ -98,7 +98,7 @@
       
     <div v-loading="recommendLoading" v-if="showFeedback" class="feedbackContainer">
       <h3><b> {{ query }}</b></h3>
-
+<!---
       <el-button
         class="feedback-btn"
         v-if="showFeedback"
@@ -106,7 +106,7 @@
         :loading="feedback_clicked"
         @click="saveExec"
         id="saveBtn">保存反馈</el-button>
-
+--->
       <div class="recommendations">
         <div class="recommendation-list">
           <recommendation-item
