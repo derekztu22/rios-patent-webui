@@ -91,48 +91,134 @@
         </div>
 
 
-        <div class="field"> <div class="fieldname"> 标签：</div>
+        <div class="field">
+          <div class="fieldname"> 标签：</div>
+
+
+<!---
             <el-button @click="addTag">+</el-button>
+--->
           <div class="patent-cell">
+            <el-tag
+              v-for="tag in tags"
+              :key="tag"
+              closable
+              :disable-transitions="false"
+              @close="handleClose(tag)"
+            >
+              {{ tag }}
+            </el-tag>
+            <el-input
+              id = "newTagInput"
+              v-if="inputVisible"
+              v-model="inputValue"
+              size="small"
+              style="height:25px; width:120px"
+              @keyup.enter="handleInputConfirm"
+              @blur="handleInputConfirm"
+            />
+            <el-button v-else class="button-new-tag" size="small" @click="showInput">
+              + 新标签
+            </el-button>
+
+<!---
             {{ tags }} 
             <div class="tagWrapper" v-for="(input,k) in newTags" :key="k">
               <div class="tag">
                 <input type="text" class="form-control" v-model="input.tag"/>
               </div>
             </div>
+--->
           </div>
         </div>
-
       </div> 
 
       <el-button class="translateBtn" @click="translateToChinese('index')"> 翻译</el-button>
 
-      <div class="feedback-buttons" id="feedback-buttons">
-          (不相似) <input type="radio" :name="'feedback' + index.toString()" value="0">0
-          <input type="radio" :name="'feedback' + index.toString()" value="1">1
-          <input type="radio" :name="'feedback' + index.toString()" value="2">2
-          <input type="radio" :name="'feedback' + index.toString()" value="3">3
-          <input type="radio" :name="'feedback' + index.toString()" value="4">4
-          <input type="radio" :name="'feedback' + index.toString()" value="5">5 (相似)
-      </div>
+      专利领域：
+      (不相似) 
+      <el-radio-group v-model="domainRadio">
+        <el-radio value="1"> 1 </el-radio>
+        <el-radio value="2"> 2 </el-radio>
+        <el-radio value="3"> 3 </el-radio>
+        <el-radio value="4"> 4 </el-radio>
+        <el-radio value="5"> 5 </el-radio>
+      </el-radio-group>
+      (不相似)
+      <br>
+
+      专利方案：
+      (不相似) 
+      <el-radio-group v-model="propRadio">
+        <el-radio value="1"> 1 </el-radio>
+        <el-radio value="2"> 2 </el-radio>
+        <el-radio value="3"> 3 </el-radio>
+        <el-radio value="4"> 4 </el-radio>
+        <el-radio value="5"> 5 </el-radio>
+      </el-radio-group>
+      (不相似)
+
+      <br>
+
+      专利问题：
+      (不相似) 
+      <el-radio-group v-model="probRadio">
+        <el-radio value="1"> 1 </el-radio>
+        <el-radio value="2"> 2 </el-radio>
+        <el-radio value="3"> 3 </el-radio>
+        <el-radio value="4"> 4 </el-radio>
+        <el-radio value="5"> 5 </el-radio>
+      </el-radio-group>
+      (不相似)
+      <br>
+
+      专利效果：
+      (不相似) 
+      <el-radio-group v-model="resultRadio">
+        <el-radio value="1"> 1 </el-radio>
+        <el-radio value="2"> 2 </el-radio>
+        <el-radio value="3"> 3 </el-radio>
+        <el-radio value="4"> 4 </el-radio>
+        <el-radio value="5"> 5 </el-radio>
+      </el-radio-group>
+      (不相似)
+      <br>
+
+      总：
+      (不相似) 
+      <el-radio-group v-model="totalRadio">
+        <el-radio value="1"> 1 </el-radio>
+        <el-radio value="2"> 2 </el-radio>
+        <el-radio value="3"> 3 </el-radio>
+        <el-radio value="4"> 4 </el-radio>
+        <el-radio value="5"> 5 </el-radio>
+      </el-radio-group>
+      (不相似)
+      <br>
+
+
+      <el-button
+        class="feedback-btn"
+        type="primary"
+        :loading="feedback_clicked"
+        @click="saveExec"
+        id="saveBtn">保存标签和反馈</el-button>
 
     </div>
   </el-container>
 </template>
 
 <script>
+/* eslint-disable */
+import { ElInput } from 'element-plus'
+import { nextTick } from 'vue'
+import axios from 'axios'
+import * as r_const from '@/router/consts'
+
 
 export default {
   name: 'RecommendationItem',
   props: {
-    //title: {
-    //  type: String,
-    //  required: true
-    //},
-    //abstract: {
-    //  type: String,
-    //  required: true
-    //},
     pubNum: {
       type: String,
       required: true
@@ -149,9 +235,11 @@ export default {
       type: String,
       required: true
     },
+    feedback: {
+      type: Array,
+    },
     tags: {
-      type: String,
-      required: true
+      type: Array,
     },
     index: {
       type: Number,
@@ -160,6 +248,7 @@ export default {
   },
   data() {
     return {
+      feedback_clicked: false,
       showPopup : false,
       showLabel : false,
       showExpert : false,
@@ -168,10 +257,56 @@ export default {
       showSide: false,
       mouseX: 0,
       mouseY: 0,
-      newTags: [],
+      inputVisible: false,
+      inputValue: '',
+      mutableTags: this.tags,
+      _pubNum: this.pubNum,
+      domainRadio: this.feedback[0].domain,
+      propRadio: this.feedback[1].prop,
+      probRadio: this.feedback[2].problem,
+      resultRadio: this.feedback[3].result,
+      totalRadio: this.feedback[4].total,
     }
   },
   methods: {
+    async saveExec() {
+      this.feedback_clicked = true;
+      let _feedback = [
+       {'domain': this.domainRadio},
+       {'prop': this.propRadio},
+       {'problem': this.probRadio},
+       {'result': this.resultRadio},
+       {'total': this.totalRadio}
+       ]
+      const response = await axios.get(
+         r_const.querySaveFeedback,
+         {
+           params: {
+             pubNum: this._pubNum,
+             feedback: _feedback,
+             tags: this.mutableTags
+           },
+         },
+         { withCredentials: true }
+       )
+      this.feedback_clicked = false;
+    },
+    handleClose(tag)  {
+      this.mutableTags.splice(this.mutableTags.indexOf(tag), 1)
+    },
+    showInput() {
+      this.inputVisible = true
+       nextTick(() => {
+        document.getElementById("newTagInput").focus()
+      })
+    },
+    handleInputConfirm () {
+      if (this.inputValue) {
+        this.mutableTags.push(this.inputValue)
+      }
+      this.inputVisible = false
+      this.inputValue = ''
+    },
     ctrlProposition(index) {
       if (document.getElementById("propositionButton"+index).textContent == "-") {
         document.getElementById("propositionText"+index).style.maxHeight="4.5em";
@@ -280,7 +415,7 @@ export default {
 .sidebar {
   height: 100px;
   margin-right:5px;
-  width:5%
+  width:7%
 }
 
 .sidebar button {

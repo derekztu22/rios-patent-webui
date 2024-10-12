@@ -26,6 +26,8 @@ const uploadVectorRouter =  "http://localhost:8080/milvus/upload"
 const uploadRouter =        "http://localhost:8082/filemanager/insert"
 const fileRouter =          "http://localhost:8082/filemanager/query"
 const singlefileRouter =    "http://localhost:8082/filemanager/singlefile"
+const saveFeedbackRouter =  "http://localhost:8084/feedback/saveFeedback"
+const getFeedbackRouter =   "http://localhost:8084/feedback/getFeedback"
 
 module.exports = {
     port,
@@ -55,5 +57,7 @@ module.exports = {
     uploadVectorRouter,
     uploadRouter,
     fileRouter,
-    singlefileRouter
+    singlefileRouter,
+    saveFeedbackRouter,
+    getFeedbackRouter
 }

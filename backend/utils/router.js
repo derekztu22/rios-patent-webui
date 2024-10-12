@@ -614,4 +614,56 @@ app.get('/filedata', async (req, res) => {
     res.send(ret)
 })
 
+app.get('/saveFeedback', async (req, res) => {
+    logger.info("Call /saveFeedback");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    const api = axios.create({
+        withCredentials: true,
+        xsrfCookieName: 'csrf_access_token',
+        xsrfHeaderName: "x-csrftoken"
+    });
+    payload = {
+        "pubNum": req.query.pubNum,
+        "feedback": req.query.feedback,
+        "tags": req.query.tags,
+    }
+    api.post(global.saveFeedbackRouter, payload)
+    .then(response => {
+      res.send(response.response_code);
+    })
+    .catch(error=> {
+    if (error.response) {
+      console.log(error.response.data);
+      console.log(error.response.status);
+      console.log(error.response.headers);
+    } else if (error.request) {
+      console.log(error.request);
+    } else {
+      console.log("error", error.message);
+    }
+    console.log(error.config);
+   });
+})
+
+app.get('/getFeedback', async (req, res) => {
+    logger.info("Call /getFeedback");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    const api = axios.create({
+        withCredentials: true,
+        xsrfCookieName: 'csrf_access_token',
+        xsrfHeaderName: "x-csrftoken"
+    });
+    payload = {
+        "pubNum": req.query.pubNum,
+    }
+    response = await api.get(global.getFeedbackRouter, { params: payload })
+    feedback = response.data.results['feedback']; 
+    tags = response.data.results['tags']; 
+    ret = {"feedback": feedback,
+           "tags": tags
+          }
+    res.send(ret)
+})
+
+
 module.exports = app

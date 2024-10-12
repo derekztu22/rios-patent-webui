@@ -1,7 +1,5 @@
 <template>
   <div class="search-page">
-
-
      <el-form class="patent-header" :inline="true">
          <el-form-item>
            <div class="rios-header">
@@ -118,6 +116,7 @@
             :proposition="item.proposition"
             :problem="item.problem"
             :result="item.result"
+            :feedback="item.feedback"
             :tags="item.tags"
             :index="index"></recommendation-item>
             <!---:title="item.title"
@@ -313,18 +312,29 @@ export default {
       console.log(recommendation_items);
       this.feedback_clicked = false;
     },
-    addRecommendation(items, index) {
+    async addRecommendation(items, index) {
       for (let i = 0; i < items.length; ++i) {
         let pubNum = items[i].publication_number;
+        const response = await axios.get(
+           r_const.queryGetFeedback,
+           {
+             params: {
+               pubNum: pubNum,
+             },
+           },
+           { withCredentials: true }
+         )
         let proposition = items[i].method;
         let problem = items[i].problem;
         let result = items[i].effect;
-        let tags = "当前没有标签。。。";
+        let tags = response.data.tags;
+        let feedback = response.data.feedback;
         this.recommendations[i + index*this.perPage] = {
           pubNum,
           proposition,
           problem,
           result,
+          feedback,
           tags
         }
       }
@@ -341,15 +351,26 @@ export default {
       this.showEK = false;
       for (let i = 0; i < items.length; i++) {
         let pubNum = items[i].publication_number;
+        const response = await axios.get(
+           r_const.queryGetFeedback,
+           {
+             params: {
+               pubNum: pubNum,
+             },
+           },
+           { withCredentials: true }
+         )
         let proposition = items[i].method;
         let problem = items[i].problem;
         let result = items[i].effect;
-        let tags = "当前没有标签。。。";
+        let tags = response.data.tags;
+        let feedback = response.data.feedback;
         this.recommendations[i] = {
           pubNum,
           proposition,
           problem,
           result,
+          feedback,
           tags
         }
       }
@@ -367,18 +388,29 @@ export default {
       //this.totalRecs = Math.ceil(this.recommendations.length/this.perPage);
       this.totalRecs = 20;
     },
-    indexToRecommended(items) {
+    async indexToRecommended(items) {
       for (let i =0; i< items.length; ++i){
         let pubNum = items[i].publication_number;
+        const response = await axios.get(
+           r_const.queryGetFeedback,
+           {
+             params: {
+               pubNum: pubNum,
+             },
+           },
+           { withCredentials: true }
+         )
         let proposition = items[i].method;
         let problem = items[i].problem;
         let result = items[i].effect;
-        let tags = "当前没有标签。。。";
+        let tags = response.data.tags;
+        let feedback = response.data.feedback;
         this.recommendations[i+ ((this.currPage-1)*this.perPage)] = {
           pubNum,
           proposition,
           problem,
           result,
+          feedback,
           tags
         }
       }
@@ -442,7 +474,7 @@ export default {
   flex-direction: column;
   /* justify-content: center; */
   align-items: center;
-  height: 90%;
+  height: 100%;
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
@@ -479,6 +511,7 @@ export default {
   align-items: center;
   width: 100%;
   margin-top: 20px;
+  overflow-y:scroll;
 }
 
 .demo-tabs > .el-tabs__content {

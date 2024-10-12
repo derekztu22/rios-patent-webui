@@ -27,6 +27,8 @@ export const queryScalarUpload =     "https://rios-api.malloc.fun:31080/scalarUp
 export const queryVectorUpload =     "https://rios-api.malloc.fun:31080/vectorUpload";
 export const queryFilename =         "https://rios-api.malloc.fun:31080/filename";
 export const queryFiledata =         "https://rios-api.malloc.fun:31080/filedata";
+export const querySaveFeedback =     "https://rios-api.malloc.fun:31080/saveFeedback";
+export const queryGetFeedback =      "https://rios-api.malloc.fun:31080/getFeedback";
 
 export const queryTaskStatusGap = 1000
 export const defaultShowResultNum = 10
