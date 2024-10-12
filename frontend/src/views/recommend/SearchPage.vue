@@ -146,6 +146,8 @@ import RPCBox from './components/RPCBox.vue';
 import RecommendationItem from './components/RecommendationItem.vue'
 import axios from 'axios'
 import * as r_const from '@/router/consts'
+import { nextTick } from 'vue'
+
 
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -425,10 +427,15 @@ export default {
         )
         let recommended_patents = null;
         recommended_patents = response.data;
-        this.indexToRecommended(recommended_patents);
+        await this.indexToRecommended(recommended_patents);
       }
 
       this.slicedRecommendations = this.recommendations.slice((n-1)*this.perPage, n*this.perPage);
+      nextTick(() => {
+        let pheader = document.getElementsByClassName('patent-header')[0];
+        pheader.scrollIntoView();
+      })
+     
     },
     async nextPage() {
       if (this.currPage < this.totalRecs) {
@@ -441,10 +448,14 @@ export default {
           )
           let recommended_patents = null;
           recommended_patents = response.data;
-          this.indexToRecommended(recommended_patents);
+          await this.indexToRecommended(recommended_patents);
         }
         this.slicedRecommendations = this.recommendations.slice((this.currPage-1)*this.perPage,
                                                                 this.currPage*this.perPage);
+        nextTick(() => {
+          let pheader = document.getElementsByClassName('patent-header')[0];
+          pheader.scrollIntoView();
+        })
       }
     },
     async prevPage() {
@@ -458,10 +469,14 @@ export default {
           )
           let recommended_patents = null;
           recommended_patents = response.data;
-          this.indexToRecommended(recommended_patents);
+          await this.indexToRecommended(recommended_patents);
         }
         this.slicedRecommendations = this.recommendations.slice((this.currPage-1)*this.perPage,
                                                                 this.currPage*this.perPage);
+        nextTick(() => {
+          let pheader = document.getElementsByClassName('patent-header')[0];
+          pheader.scrollIntoView();
+        })
       }
     }
   },
