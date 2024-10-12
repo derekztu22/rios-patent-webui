@@ -236,7 +236,7 @@ export default {
       required: true
     },
     feedback: {
-      type: Array,
+      type: Object,
     },
     tags: {
       type: Array,
@@ -261,23 +261,23 @@ export default {
       inputValue: '',
       mutableTags: this.tags,
       _pubNum: this.pubNum,
-      domainRadio: this.feedback[0].domain,
-      propRadio: this.feedback[1].prop,
-      probRadio: this.feedback[2].problem,
-      resultRadio: this.feedback[3].result,
-      totalRadio: this.feedback[4].total,
+      domainRadio: this.feedback.domain,
+      propRadio: this.feedback.prop,
+      probRadio: this.feedback.problem,
+      resultRadio: this.feedback.result,
+      totalRadio: this.feedback.total,
     }
   },
   methods: {
     async saveExec() {
       this.feedback_clicked = true;
-      let _feedback = [
-       {'domain': this.domainRadio},
-       {'prop': this.propRadio},
-       {'problem': this.probRadio},
-       {'result': this.resultRadio},
-       {'total': this.totalRadio}
-       ]
+      let _feedback = {
+       'domain': this.domainRadio,
+       'prop': this.propRadio,
+       'problem': this.probRadio,
+       'result': this.resultRadio,
+       'total': this.totalRadio
+       }
       const response = await axios.get(
          r_const.querySaveFeedback,
          {
