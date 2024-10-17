@@ -28,6 +28,26 @@
      </el-form>
 
     <el-container>
+
+
+       <div class="search-container">
+         <invalid-box v-if="showInvalid"
+           @showRecommendation="showRecommendation" 
+           @addRecommendation="addRecommendation"
+           @setLoading="setLoading"></invalid-box>
+         <gen-box v-if="showGeneral"
+           @showRecommendation="showRecommendation"
+           @addRecommendation="addRecommendation"
+           @setLoading="setLoading"></gen-box>
+         <id-box v-if="showInfringement"
+           @showRecommendation="showRecommendation"
+           @addRecommendation="addRecommendation"
+           @setLoading="setLoading"></id-box>
+           <br />
+       </div>
+
+
+      <!---
       <el-header class="header-tabs">
       <b>搜索方式: </b>
         <el-tabs class="demo-tabs" :stretch="true" @tab-click="handleTabClick">
@@ -94,10 +114,11 @@
 
         </el-tabs>
       </el-header>
+--->
     </el-container>
       
     <div v-loading="recommendLoading" v-if="showFeedback" class="feedbackContainer">
-      <h3><b> {{ query }}</b></h3>
+      <h2><b> {{ query }}</b></h2>
 <!---
       <el-button
         class="feedback-btn"
@@ -110,6 +131,7 @@
       <div class="recommendations">
         <div class="recommendation-list">
           <recommendation-item
+            @showSummary="showSummary"
             v-for="(item, index) in slicedRecommendations"
             :key="item.pubNum"
             :pubNum="item.pubNum"
@@ -118,9 +140,8 @@
             :result="item.result"
             :feedback="item.feedback"
             :tags="item.tags"
-            :index="index"></recommendation-item>
-            <!---:title="item.title"
-            :abstract="item.abstract" --->
+            :index="index"> 
+          </recommendation-item>
         </div>
       </div>
       <div class="pageCtrls">
@@ -289,30 +310,9 @@ export default {
         this.showFeedback = false;
       }
     },
-    async saveExec() {
-      this.feedback_clicked = true;
-      await delay(1000);
-
-      let recitem_index = 1
-      var recommendation_items = document.getElementsByClassName(
-        'recommendation-item'
-      )
-      for (let i = 0; i < recommendation_items.length; i++) {
-        let feedback = recommendation_items[i].children[1].children
-        let pubNum =
-          recommendation_items[i].children[0].children[0].textContent;
-        for (let j = 0; j < feedback.length; j++) {
-          if (feedback[j].checked) {
-            let sentiment = feedback[j].value
-            this.recommendation_feedback.push({
-              pubNum,
-              sentiment,
-            })
-          }
-        }
-      }
-      console.log(recommendation_items);
-      this.feedback_clicked = false;
+    async showSummary(index) {
+      let relevantItem = document.getElementById("recommendCell" + index);
+      relevantItem.style.width="60%";
     },
     async addRecommendation(items, index) {
       for (let i = 0; i < items.length; ++i) {
@@ -515,7 +515,7 @@ export default {
 .recommendations {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: left;
   min-height: 40px;
   width:100%;
 }
@@ -523,7 +523,7 @@ export default {
 .recommendation-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: left;
   width: 100%;
   margin-top: 20px;
   overflow-y:scroll;

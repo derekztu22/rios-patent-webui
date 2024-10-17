@@ -4,9 +4,9 @@
     <el-aside>
       <el-button id="ctrlButton" class="sidebarCtrlButton" @click="ctrlSidebar">+</el-button>
       <div class="sidebar" v-if="showSide">
+        <button class="sidebarLinks" @click="openPopup('label', $event)">专利标签 </button>
         <button class="sidebarLinks" @click="openPopup('expert', $event)">专门知识</button>
         <button class="sidebarLinks" @click="openPopup('rpc', $event)">RPC</button>
-        <button class="sidebarLinks" @click="openPopup('other', $event)">此外</button>
       </div>
     </el-aside>
 
@@ -22,7 +22,6 @@
 
         <div class="modal-body">
           <div v-if="showLabel">
-            没有标签 <br>
             <input
              type="text"
              placeholder="输入标签"/>
@@ -53,17 +52,24 @@
 
         <div class="modal-footer">
           <el-button class="close-button" @click="closePopup">关</el-button>
-          <el-button class="save-button" @click="save">保存</el-button>
+          <el-button class="save-button" @click="save">搜索</el-button>
         </div>
       </div>
     </div>
 
 
-    <div class="recommendation-item">
+    <div class="recommendation-item" :id="'recommendCell' + index.toString()"  >
 
       <div class="patent-table">
-        <div class="pubNum"><a :href="'https://patents.google.com/patent/' + pubNum.replaceAll('-', '') + '/en'" target="_blank" rel="noopener">{{ pubNum }}</a>   </div>
+        <div class="pubNum">
+          <a :href="'https://patents.google.com/patent/' + pubNum.replaceAll('-', '') + '/en'" target="_blank" rel="noopener">{{ pubNum }}</a>   
 
+          <el-button class="summaryButton" @click="summarize(index.toString())" :loading="summaryClicked">
+            总结
+          </el-button>
+
+          <br>
+        </div>
 
         <div class="field"> 
           <div class="fieldname"> 方案：</div>
@@ -135,77 +141,98 @@
 
       <el-button class="translateBtn" @click="translateToChinese('index')"> 翻译</el-button>
 
-      专利领域：
-      (不相似) 
-      <el-radio-group v-model="domainRadio">
-        <el-radio value="1"> 1 </el-radio>
-        <el-radio value="2"> 2 </el-radio>
-        <el-radio value="3"> 3 </el-radio>
-        <el-radio value="4"> 4 </el-radio>
-        <el-radio value="5"> 5 </el-radio>
-      </el-radio-group>
-      (不相似)
-      <br>
+      <div class="feedbackHeader">
+        <b>
+        <div class="notSimilarText">
+          不相关
+        </div>
+        <div class="barText1">
+          |
+        </div>
+        <div class="similarityText">
+          相关相似度
+        </div>
+        </b>
+  
+      </div>
 
-      专利方案：
-      (不相似) 
-      <el-radio-group v-model="propRadio">
-        <el-radio value="1"> 1 </el-radio>
-        <el-radio value="2"> 2 </el-radio>
-        <el-radio value="3"> 3 </el-radio>
-        <el-radio value="4"> 4 </el-radio>
-        <el-radio value="5"> 5 </el-radio>
-      </el-radio-group>
-      (不相似)
+      <div class="radios">
+        专利领域：
+        <el-radio-group v-model="domainRadio">
+          <el-radio value="0"> 0 </el-radio>
+          <el-radio value="1"> 1 </el-radio>
+          <el-radio value="2"> 2 </el-radio>
+          <el-radio value="3"> 3 </el-radio>
+          <el-radio value="4"> 4 </el-radio>
+          <el-radio value="5"> 5 </el-radio>
+        </el-radio-group>
+        <br>
 
-      <br>
+        专利方案：
+        <el-radio-group v-model="propRadio">
+          <el-radio value="0"> 0 </el-radio>
+          <el-radio value="1"> 1 </el-radio>
+          <el-radio value="2"> 2 </el-radio>
+          <el-radio value="3"> 3 </el-radio>
+          <el-radio value="4"> 4 </el-radio>
+          <el-radio value="5"> 5 </el-radio>
+        </el-radio-group>
 
-      专利问题：
-      (不相似) 
-      <el-radio-group v-model="probRadio">
-        <el-radio value="1"> 1 </el-radio>
-        <el-radio value="2"> 2 </el-radio>
-        <el-radio value="3"> 3 </el-radio>
-        <el-radio value="4"> 4 </el-radio>
-        <el-radio value="5"> 5 </el-radio>
-      </el-radio-group>
-      (不相似)
-      <br>
+        <br>
 
-      专利效果：
-      (不相似) 
-      <el-radio-group v-model="resultRadio">
-        <el-radio value="1"> 1 </el-radio>
-        <el-radio value="2"> 2 </el-radio>
-        <el-radio value="3"> 3 </el-radio>
-        <el-radio value="4"> 4 </el-radio>
-        <el-radio value="5"> 5 </el-radio>
-      </el-radio-group>
-      (不相似)
-      <br>
+        专利问题：
+        <el-radio-group v-model="probRadio">
+          <el-radio value="0"> 0 </el-radio>
+          <el-radio value="1"> 1 </el-radio>
+          <el-radio value="2"> 2 </el-radio>
+          <el-radio value="3"> 3 </el-radio>
+          <el-radio value="4"> 4 </el-radio>
+          <el-radio value="5"> 5 </el-radio>
+        </el-radio-group>
+        <br>
 
-      总：
-      (不相似) 
-      <el-radio-group v-model="totalRadio">
-        <el-radio value="1"> 1 </el-radio>
-        <el-radio value="2"> 2 </el-radio>
-        <el-radio value="3"> 3 </el-radio>
-        <el-radio value="4"> 4 </el-radio>
-        <el-radio value="5"> 5 </el-radio>
-      </el-radio-group>
-      (不相似)
-      <br>
+        专利效果：
+        <el-radio-group v-model="resultRadio">
+          <el-radio value="0"> 0 </el-radio>
+          <el-radio value="1"> 1 </el-radio>
+          <el-radio value="2"> 2 </el-radio>
+          <el-radio value="3"> 3 </el-radio>
+          <el-radio value="4"> 4 </el-radio>
+          <el-radio value="5"> 5 </el-radio>
+        </el-radio-group>
+        <br>
+
+        专利总共：
+        <el-radio-group v-model="totalRadio">
+          <el-radio value="0"> 0 </el-radio>
+          <el-radio value="1"> 1 </el-radio>
+          <el-radio value="2"> 2 </el-radio>
+          <el-radio value="3"> 3 </el-radio>
+          <el-radio value="4"> 4 </el-radio>
+          <el-radio value="5"> 5 </el-radio>
+        </el-radio-group>
+        <br>
+      </div>
 
 
       <el-button
         class="feedback-btn"
         type="primary"
-        :loading="feedback_clicked"
+        :loading="feedbackClicked"
         @click="saveExec"
         id="saveBtn">保存标签和反馈</el-button>
 
+
     </div>
+    <aside class="summaryBox" :id="'summaryBox' + index.toString()" v-if="showSummaryBox">
+      <h3>中文总结</h3>
+      <div>
+       blahablahahlaa
+      </div>
+      
+    </aside>
   </el-container>
+
 </template>
 
 <script>
@@ -248,7 +275,8 @@ export default {
   },
   data() {
     return {
-      feedback_clicked: false,
+      feedbackClicked: false,
+      summaryClicked: false,
       showPopup : false,
       showLabel : false,
       showExpert : false,
@@ -266,11 +294,38 @@ export default {
       probRadio: this.feedback.problem,
       resultRadio: this.feedback.result,
       totalRadio: this.feedback.total,
+      showSummaryBox: false,
+      summary: '',
+      propositionText: this.proposition,
+      problemText: this.problem,
+      resultText: this.result,
     }
   },
   methods: {
+    async summarize(index) {
+      let relevantItem = document.getElementById("recommendCell" + index);
+      if (relevantItem.style.width=="80%") {
+        relevantItem.style.width="100%";
+        this.showSummaryBox = false;
+      } else {
+        if (this.summary == "" ) {
+          this.summaryClicked = true;
+          let _fullText = this.propositionText + this.problemText + this.resultText;
+          this.summary = _fullText;
+        } 
+        relevantItem.style.width="80%";
+        this.showSummaryBox = true;
+
+        nextTick(() => {
+          let summary = document.getElementById("summaryBox" + index);
+          summary.children[1].textContent = this.summary;
+        });
+      }
+      this.summaryClicked = false;
+   
+    },
     async saveExec() {
-      this.feedback_clicked = true;
+      this.feedbackClicked = true;
       let _feedback = {
        'domain': this.domainRadio,
        'prop': this.propRadio,
@@ -289,7 +344,7 @@ export default {
          },
          { withCredentials: true }
        )
-      this.feedback_clicked = false;
+      this.feedbackClicked = false;
     },
     handleClose(tag)  {
       this.mutableTags.splice(this.mutableTags.indexOf(tag), 1)
@@ -403,13 +458,23 @@ export default {
 .recommendation-item {
   width: 100%;
   margin: 0 auto;
-  /* 居中对齐 */
   margin-bottom: 20px;
   padding: 10px;
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 5px;
   min-width: 800px;
+}
+
+.summaryBox {
+  width:60%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin: 0 auto;
+  margin-bottom: 20px;
+  padding: 10px;
+
 }
 
 .sidebar {
@@ -446,6 +511,9 @@ export default {
   margin-top: 5px;
   font-weight: bold;
   font-size: 20px;
+  float:center;
+  margin-left:3.5%;
+  line-height:2;
 }
 
 .abstract {
@@ -565,6 +633,7 @@ export default {
 
 .recommend-cell {
   width:100%;
+  float:left;
 }
 
 .sidebarCtrlButton {
@@ -582,6 +651,35 @@ export default {
 .tag {
   display:inline;
   margin:2px;
+}
+
+.feedbackHeader {
+  display: inline;
+}
+
+.notSimilarText {
+  text-align:left;
+  display: inline;
+  margin-left:-40px;
+}
+
+.barText1 {
+  display: inline;
+  margin-left:10px;
+}
+
+.similarityText {
+  display: inline;
+  margin-left:100px;
+}
+
+.summaryButton {
+  float: right;
+  background-color: #0078d7;
+  color: white;
+  font-weight: bold;
+  border: 1px;
+
 }
 
 </style>
