@@ -65,7 +65,7 @@
           <a :href="'https://patents.google.com/patent/' + pubNum.replaceAll('-', '') + '/en'" target="_blank" rel="noopener">{{ pubNum }}</a>   
 
           <el-button class="summaryButton" @click="summarize(index.toString())" :loading="summaryClicked">
-            总结
+            Outline
           </el-button>
 
           <br>
@@ -225,9 +225,9 @@
 
     </div>
     <aside class="summaryBox" :id="'summaryBox' + index.toString()" v-if="showSummaryBox">
-      <h3>中文总结</h3>
-      <div>
-       blahablahahlaa
+      <h3>Chinese Outline</h3>
+      <div class="innerSumBox">
+        &nbsp; 
       </div>
       
     </aside>
@@ -241,7 +241,14 @@ import { ElInput } from 'element-plus'
 import { nextTick } from 'vue'
 import axios from 'axios'
 import * as r_const from '@/router/consts'
+import OpenAI from "openai";
 
+const cfg = {
+baseURL: "http://localhost:12345",
+dangerouslyAllowBrowser:true,
+apiKey: "a_api_key"
+}
+const openai = new OpenAI(cfg);
 
 export default {
   name: 'RecommendationItem',
@@ -310,19 +317,34 @@ export default {
       } else {
         if (this.summary == "" ) {
           this.summaryClicked = true;
-          let _fullText = this.propositionText + this.problemText + this.resultText;
-          this.summary = _fullText;
-        } 
-        relevantItem.style.width="80%";
-        this.showSummaryBox = true;
+          this.showSummaryBox = true;
+          relevantItem.style.width="80%";
 
+          const stream = await openai.beta.chat.completions.stream({ model: 'gpt-3.5-turbo',
+                                                                     messages: [{ role: 'user', content: "以下是一个专利的 prompt, method, effect部分， 请你用中文讲这些内容总结一下：\n\t" + "problem: "+ this.problemText + "\n\t" + "method: " +this.propositionText + "\n\t" + "effect: " + this.resultText}],
+                                                                     stream: true, temperature: 0}); 
+          try {
+            for await (const chunk of stream) {
+              let word = (chunk.choices[0]?.delta?.content || '');
+              nextTick(() => {
+                let summary = document.getElementById("summaryBox" + index);
+                summary.children[1].textContent = summary.children[1].textContent + word;
+              });
+            }
+          } catch (err) {
+            console.log(err);
+            this.summary = document.getElementById("summaryBox" + index).children[1].textContent;
+          }
+        } 
+        this.showSummaryBox = true;
+        relevantItem.style.width="80%";
         nextTick(() => {
           let summary = document.getElementById("summaryBox" + index);
           summary.children[1].textContent = this.summary;
         });
+        this.summaryClicked = false;
       }
       this.summaryClicked = false;
-   
     },
     async saveExec() {
       this.feedbackClicked = true;
@@ -474,6 +496,7 @@ export default {
   margin: 0 auto;
   margin-bottom: 20px;
   padding: 10px;
+  justify-content:start;
 
 }
 
@@ -680,6 +703,10 @@ export default {
   font-weight: bold;
   border: 1px;
 
+}
+
+.innerSumBox {
+  text-align:left;
 }
 
 </style>
