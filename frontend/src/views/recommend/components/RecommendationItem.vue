@@ -71,25 +71,30 @@
           <br>
         </div>
 
-        <div class="field"> 
-          <div class="fieldname"> 方案：</div>
-            <el-button :id="'propositionButton' + index.toString()" class="propositionButton" @click="ctrlProposition(index.toString())">+</el-button>
-            <div :id="'propositionText' + index.toString()" class="patent-cell"> 
-              {{ proposition }}
-            </div>
-        </div>
 
         <div class="field">
-          <div class="fieldname"> 问题：</div>
+          <div class="fieldname">技术问题:
+          </div>
             <el-button :id="'problemButton' + index.toString()" class="problemButton" @click="ctrlProblem(index.toString())">+</el-button>
             <div :id="'problemText' + index.toString()" class="patent-cell">
               {{ problem }}
             </div>
         </div>
 
+        <div class="field"> 
+          <div class="fieldname">技术方案:
+          </div>
+            <el-button :id="'propositionButton' + index.toString()" class="propositionButton" @click="ctrlProposition(index.toString())">+</el-button>
+            <div :id="'propositionText' + index.toString()" class="patent-cell"> 
+              {{ proposition }}
+            </div>
+        </div>
+
+
 
         <div class="field"> 
-          <div class="fieldname"> 效果：</div>
+          <div class="fieldname">技术效果:
+          </div>
             <el-button :id="'resultButton' + index.toString()" class="resultButton" @click="ctrlResult(index.toString())">+</el-button>
             <div :id="'resultText'+ index.toString()" class="patent-cell">
               {{ result }} 
@@ -225,7 +230,7 @@
 
     </div>
     <aside class="summaryBox" :id="'summaryBox' + index.toString()" v-if="showSummaryBox">
-      <h3>Chinese Outline</h3>
+      <h3>中文概述</h3>
       <div class="innerSumBox">
         &nbsp; 
       </div>
@@ -244,7 +249,7 @@ import * as r_const from '@/router/consts'
 import OpenAI from "openai";
 
 const cfg = {
-baseURL: "http://localhost:12345",
+baseURL: "http://10.103.65.31:45678",
 dangerouslyAllowBrowser:true,
 apiKey: "a_api_key"
 }
@@ -321,8 +326,8 @@ export default {
           relevantItem.style.width="80%";
 
           const stream = await openai.beta.chat.completions.stream({ model: 'gpt-3.5-turbo',
-                                                                     messages: [{ role: 'user', content: "以下是一个专利的 prompt, method, effect部分， 请你用中文讲这些内容总结一下：\n\t" + "problem: "+ this.problemText + "\n\t" + "method: " +this.propositionText + "\n\t" + "effect: " + this.resultText}],
-                                                                     stream: true, temperature: 0}); 
+                                                                     messages: [{ role: 'user', content: "以下是一个专利的 problem, method, effect部分， 请你用中文讲这些内容总结一下：\n\t" + "problem: "+ this.problemText + "\n\t" + "method: " +this.propositionText + "\n\t" + "effect: " + this.resultText}],
+                                                                     stream: true, temperature: 0, max_tokens:2000}); 
           try {
             for await (const chunk of stream) {
               let word = (chunk.choices[0]?.delta?.content || '');
