@@ -19,8 +19,11 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item :command="{action: 'invalidation'}">专利无效推荐</el-dropdown-item>
+             
                   <el-dropdown-item :command="{action: 'defense'}">防专利侵权推荐</el-dropdown-item>
+             
                   <el-dropdown-item :command="{action: 'general'}">专利通用推荐</el-dropdown-item>
+             
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -47,87 +50,10 @@
        </div>
 
 
-      <!---
-      <el-header class="header-tabs">
-      <b>搜索方式: </b>
-        <el-tabs class="demo-tabs" :stretch="true" @tab-click="handleTabClick">
-
-          <el-tab-pane label="作用">
-            <template #label>
-            <el-tooltip slot="label" content="推荐不同的专利"><span>作用</span></el-tooltip>
-            </template>
-            <div class="search-container">
-              <invalid-box v-if="showInvalid"
-                @showRecommendation="showRecommendation" 
-                @addRecommendation="addRecommendation"
-                @setLoading="setLoading"></invalid-box>
-              <gen-box v-if="showGeneral"
-                @showRecommendation="showRecommendation"
-                @addRecommendation="addRecommendation"
-                @setLoading="setLoading"></gen-box>
-              <id-box v-if="showInfringement"
-                @showRecommendation="showRecommendation"
-                @addRecommendation="addRecommendation"
-                @setLoading="setLoading"></id-box>
-                <br />
-            </div>
-          </el-tab-pane>
-
-          <el-tab-pane label="专利标签">
-            <template #label>
-            <el-tooltip slot="label" content="搜索自定义的专利标签"><span>专利标签</span></el-tooltip>
-            </template>
-            <div class="search-container">
-              <label-box  v-if="showLabels"
-                @showRecommendation="showRecommendation"
-                @addRecommendation="addRecommendation"
-                @setLoading="setLoading"></label-box>
-                <br />
-            </div>
-          </el-tab-pane>
-
-          <el-tab-pane label="专门知识">
-            <template #label>
-            <el-tooltip slot="label" content="搜索自定义的专门知识"><span>专门知识</span></el-tooltip>
-            </template>
-            <div class="search-container">
-              <ek-box v-if="showEK" 
-                @showRecommendation="showRecommendation"
-                @addRecommendation="addRecommendation"
-                @setLoading="setLoading"></ek-box>
-                <br />
-            </div>
-          </el-tab-pane>
-
-          <el-tab-pane label="RPC">
-            <template #label>
-            <el-tooltip slot="label" content="搜索自定义的RPC">  <span>RPC</span></el-tooltip>
-            </template>
-            <div class="search-container">
-              <rpc-box v-if="showRPC"
-                @showRecommendation="showRecommendation"
-                @addRecommendation="addRecommendation"
-                @setLoading="setLoading"></rpc-box>
-                <br />
-            </div>
-          </el-tab-pane>
-
-        </el-tabs>
-      </el-header>
---->
     </el-container>
       
     <div v-loading="recommendLoading" v-if="showFeedback" class="feedbackContainer">
       <h2><b> {{ query }}</b></h2>
-<!---
-      <el-button
-        class="feedback-btn"
-        v-if="showFeedback"
-        type="primary"
-        :loading="feedback_clicked"
-        @click="saveExec"
-        id="saveBtn">保存反馈</el-button>
---->
       <div class="recommendations">
         <div class="recommendation-list">
           <recommendation-item

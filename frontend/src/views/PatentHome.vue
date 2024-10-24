@@ -1,11 +1,5 @@
 <template>
   <el-container style="height: 85vh">
-<!---
-      <div class="rios-header">
-        Patent Box
-        <img src="@/assets/cereblogo.png" alt="Logo" width="38.5" height="35.5"/>
-      </div>
---->
     <el-container class='patent-container'>
 
      <r-search></r-search>
