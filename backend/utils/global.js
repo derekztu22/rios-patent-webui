@@ -12,6 +12,7 @@ const llmChatPostRouterllama13Tuned = "http://10.8.102.47:8001/nl_items/"
 const SQLExecRouter = "http://localhost:8001/sql_es/"
 const recommendRouter = "http://10.8.102.152:8002/recommend_items/"
 const recommendInvRouter =  "http://10.8.102.152:8002/recommend_invalid"
+const getSummaryRouter =    "http://10.8.102.152:8002/outline"
 const translatorRouter =    "http://10.8.103.26:5000/translator/translate"
 const retrainRouter =       "http://10.8.103.26:5000/translator/retrain"
 const saveRouter =          "http://10.8.103.26:5000/translator/save"
@@ -59,5 +60,6 @@ module.exports = {
     fileRouter,
     singlefileRouter,
     saveFeedbackRouter,
-    getFeedbackRouter
+    getFeedbackRouter,
+    getSummaryRouter
 }

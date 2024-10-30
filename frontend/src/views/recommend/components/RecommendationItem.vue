@@ -246,14 +246,9 @@ import { ElInput } from 'element-plus'
 import { nextTick } from 'vue'
 import axios from 'axios'
 import * as r_const from '@/router/consts'
-import OpenAI from "openai";
+import * as utils_func from '@/utils/func'
 
-const cfg = {
-baseURL: "http://10.103.65.31:45678",
-dangerouslyAllowBrowser:true,
-apiKey: "a_api_key"
-}
-const openai = new OpenAI(cfg);
+const delay = ms => new Promise(res => setTimeout(res, ms));
 
 export default {
   name: 'RecommendationItem',
@@ -324,22 +319,40 @@ export default {
           this.summaryClicked = true;
           this.showSummaryBox = true;
           relevantItem.style.width="80%";
-
-          const stream = await openai.beta.chat.completions.stream({ model: 'gpt-3.5-turbo',
-                                                                     messages: [{ role: 'user', content: "以下是一个专利的 problem, method, effect部分， 请你用中文讲这些内容总结一下：\n\t" + "problem: "+ this.problemText + "\n\t" + "method: " +this.propositionText + "\n\t" + "effect: " + this.resultText}],
-                                                                     stream: true, temperature: 0, max_tokens:2000}); 
-          try {
-            for await (const chunk of stream) {
-              let word = (chunk.choices[0]?.delta?.content || '');
-              nextTick(() => {
-                let summary = document.getElementById("summaryBox" + index);
-                summary.children[1].textContent = summary.children[1].textContent + word;
-              });
+          let _queryID = utils_func.GenNonDuplicateID(24);
+          const response = await axios.get(
+             r_const.queryGetSummary,
+             {
+               params:  {
+                 queryID: _queryID,
+                 pubNum: this._pubNum,
+               },
+             },
+             { withCredentials: true }
+          );
+          let first = true;
+          while (true) {
+            let summary = document.getElementById("summaryBox" + index);
+            if (first) {
+              await delay(1000);
+              first = false;
             }
-          } catch (err) {
-            console.log(err);
-            this.summary = document.getElementById("summaryBox" + index).children[1].textContent;
+            const response = await axios.get(
+               r_const.queryPollSummary,
+               {
+                 params:  {
+                   queryID: _queryID,
+                 },
+               },
+               { withCredentials: true }
+            );
+            summary.children[1].textContent = response.data.outline;
+            this.summary = response.data.outline;
+            if (response.data.stats === "done") {
+              break;
+            }
           }
+         
         } 
         this.showSummaryBox = true;
         relevantItem.style.width="80%";

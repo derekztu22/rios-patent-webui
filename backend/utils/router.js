@@ -58,6 +58,25 @@ var taskList = {};
 var llmResponseList = {};
 var recommendList = {};
 
+var outlineFuncs = (function() {
+  var summaryDict = {};
+  var summaryDictStatus = {};
+  return {
+    setSummaryDict: function(queryID, inp) {
+      summaryDict[queryID] = inp;
+    },
+    setSummaryDictStatus: function(queryID, inp) {
+      summaryDictStatus[queryID] = inp;
+    },
+    getSummaryDict: function(queryID) {
+      return summaryDict[queryID];
+    },
+    getSummaryDictStatus: function(queryID) {
+      return summaryDictStatus[queryID];
+    }
+  }
+})();
+
 app.get('/getHDFSTableList', async (req, res) => {
     logger.info("Call /getHDFSTablesList");
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -663,6 +682,53 @@ app.get('/getFeedback', async (req, res) => {
            "tags": tags
           }
     res.send(ret)
+})
+
+app.get('/getSummary', async (req, res) => {
+    logger.info("Call /getSummary");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    const api = axios.create({
+        withCredentials: true,
+        xsrfCookieName: 'csrf_access_token',
+        xsrfHeaderName: "x-csrftoken"
+    });
+    payload = {
+        "publication_number": req.query.pubNum,
+    }
+    res.send({ status: true })
+    const response = await axios.post(global.getSummaryRouter,
+          payload, {responseType: "stream"}
+          );
+    const stream = response.data;
+
+    queryID = req.query.queryID
+    let outline = "";
+    outlineFuncs.setSummaryDict(queryID, outline);
+    outlineFuncs.setSummaryDictStatus(queryID, true);
+    stream.on("data", data => {
+      outline = outline + data.toString();
+      outlineFuncs.setSummaryDict(queryID, outline);
+      outlineFuncs.setSummaryDictStatus(queryID, true);
+    });
+
+    stream.on("end", () => {
+      outlineFuncs.setSummaryDictStatus(queryID, false);
+    });
+
+})
+
+app.get('/pollSummary', async (req, res) => {
+    logger.info("Call /pollSummary");
+    queryID = req.query.queryID
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    let outlineStatus = outlineFuncs.getSummaryDictStatus(queryID);
+    if (outlineStatus) {
+      let outline = outlineFuncs.getSummaryDict(queryID);
+      res.send({"outline": outline, "stats":"polling" })
+    } else {
+      let outline = outlineFuncs.getSummaryDict(queryID);
+      res.send({"outline":outline, "stats":"done"})
+    }
 })
 
 
