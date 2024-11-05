@@ -303,7 +303,7 @@ app.get('/getRecommend', async (req, res) => {
 })
 
 app.get('/postRecommendInv', async (req, res) => {
-    logger.info("Call /postRecommend");
+    logger.info("Call /postRecommendInv");
     queryID = req.query.queryID
     res.setHeader("Access-Control-Allow-Origin", "*");
     patentID = req.query.patentID
@@ -729,6 +729,26 @@ app.get('/pollSummary', async (req, res) => {
       let outline = outlineFuncs.getSummaryDict(queryID);
       res.send({"outline":outline, "stats":"done"})
     }
+})
+
+app.get('/translatePatent', async (req, res, next) => { req.setTimeout(0); next(); }, async (req, res) => {
+    logger.info("Call /translatePatent");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    cookie = req.query.cookie;
+    const api = axios.create({
+        withCredentials: true,
+        headers: {
+            Cookie: cookie,
+        },
+        xsrfCookieName: 'csrf_access_token',
+        xsrfHeaderName: "x-csrftoken"
+    });
+    
+    payload = {
+        "pubNum": req.query.pubNum
+    }
+    response = await api.get(global.getPTranslateRouter, { params: payload })
+    res.send(response.data)
 })
 
 

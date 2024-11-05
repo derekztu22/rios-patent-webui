@@ -30,7 +30,8 @@ export const queryFiledata =         process.env.VUE_APP_FRONTEND_ROUTER + "/fil
 export const querySaveFeedback =     process.env.VUE_APP_FRONTEND_ROUTER + "/saveFeedback";
 export const queryGetFeedback =      process.env.VUE_APP_FRONTEND_ROUTER + "/getFeedback";
 export const queryGetSummary =       process.env.VUE_APP_FRONTEND_ROUTER + "/getSummary";
-export const queryPollSummary =       process.env.VUE_APP_FRONTEND_ROUTER + "/pollSummary";
+export const queryPollSummary =      process.env.VUE_APP_FRONTEND_ROUTER + "/pollSummary";
+export const queryPatentTranslate =  process.env.VUE_APP_FRONTEND_ROUTER + "/translatePatent";
 
 export const queryTaskStatusGap = 1000
 export const defaultShowResultNum = 10
