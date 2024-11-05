@@ -130,146 +130,146 @@
       <el-button :disabled="translateDisabled"
                  :loading="translateClicked"
                  class="translateBtn"
-			 @click="translateToChinese()"> 翻译</el-button>
+                 @click="translateToChinese()"> 翻译</el-button>
 
-	      <div class="feedbackHeader">
-		<b>
-		<div class="notSimilarText">
-		  不相关
-		</div>
-		<div class="barText1">
-		  |
-		</div>
-		<div class="similarityText">
-		  相关相似度
-		</div>
-		</b>
-	  
-	      </div>
+      <div class="feedbackHeader">
+        <b>
+        <div class="notSimilarText">
+          不相关
+        </div>
+        <div class="barText1">
+          |
+        </div>
+        <div class="similarityText">
+          相关相似度
+        </div>
+        </b>
+  
+      </div>
 
-	      <div class="radios">
-		专利领域：
-		<el-radio-group v-model="domainRadio">
-		  <el-radio value="0"> 0 </el-radio>
-		  <el-radio value="1"> 1 </el-radio>
-		  <el-radio value="2"> 2 </el-radio>
-		  <el-radio value="3"> 3 </el-radio>
-		  <el-radio value="4"> 4 </el-radio>
-		  <el-radio value="5"> 5 </el-radio>
-		</el-radio-group>
-		<br>
-
-		专利方案：
-		<el-radio-group v-model="propRadio">
-		  <el-radio value="0"> 0 </el-radio>
-		  <el-radio value="1"> 1 </el-radio>
-		  <el-radio value="2"> 2 </el-radio>
-		  <el-radio value="3"> 3 </el-radio>
-		  <el-radio value="4"> 4 </el-radio>
-		  <el-radio value="5"> 5 </el-radio>
-		</el-radio-group>
-
-		<br>
-
-		专利问题：
-		<el-radio-group v-model="probRadio">
-		  <el-radio value="0"> 0 </el-radio>
-		  <el-radio value="1"> 1 </el-radio>
-		  <el-radio value="2"> 2 </el-radio>
-		  <el-radio value="3"> 3 </el-radio>
-		  <el-radio value="4"> 4 </el-radio>
-		  <el-radio value="5"> 5 </el-radio>
-		</el-radio-group>
-		<br>
-
-		专利效果：
-		<el-radio-group v-model="resultRadio">
-		  <el-radio value="0"> 0 </el-radio>
-		  <el-radio value="1"> 1 </el-radio>
-		  <el-radio value="2"> 2 </el-radio>
-		  <el-radio value="3"> 3 </el-radio>
-		  <el-radio value="4"> 4 </el-radio>
-		  <el-radio value="5"> 5 </el-radio>
-		</el-radio-group>
-		<br>
-
-		专利总共：
-		<el-radio-group v-model="totalRadio">
-		  <el-radio value="0"> 0 </el-radio>
-		  <el-radio value="1"> 1 </el-radio>
-		  <el-radio value="2"> 2 </el-radio>
-		  <el-radio value="3"> 3 </el-radio>
-		  <el-radio value="4"> 4 </el-radio>
-		  <el-radio value="5"> 5 </el-radio>
-		</el-radio-group>
-		<br>
-	      </div>
-
-
-	      <el-button
-		class="feedback-btn"
-		type="primary"
-		:loading="feedbackClicked"
-		@click="saveExec"
-		id="saveBtn">保存标签和反馈</el-button>
+      <div class="radios">
+        专利领域：
+        <el-radio-group v-model="domainRadio">
+          <el-radio value="0"> 0 </el-radio>
+          <el-radio value="1"> 1 </el-radio>
+          <el-radio value="2"> 2 </el-radio>
+          <el-radio value="3"> 3 </el-radio>
+          <el-radio value="4"> 4 </el-radio>
+          <el-radio value="5"> 5 </el-radio>
+        </el-radio-group>
+        <br>
+        
+        专利方案：
+        <el-radio-group v-model="propRadio">
+          <el-radio value="0"> 0 </el-radio>
+          <el-radio value="1"> 1 </el-radio>
+          <el-radio value="2"> 2 </el-radio>
+          <el-radio value="3"> 3 </el-radio>
+          <el-radio value="4"> 4 </el-radio>
+          <el-radio value="5"> 5 </el-radio>
+        </el-radio-group>
+        
+        <br>
+        
+        专利问题：
+        <el-radio-group v-model="probRadio">
+          <el-radio value="0"> 0 </el-radio>
+          <el-radio value="1"> 1 </el-radio>
+          <el-radio value="2"> 2 </el-radio>
+          <el-radio value="3"> 3 </el-radio>
+          <el-radio value="4"> 4 </el-radio>
+          <el-radio value="5"> 5 </el-radio>
+        </el-radio-group>
+        <br>
+        
+        专利效果：
+        <el-radio-group v-model="resultRadio">
+          <el-radio value="0"> 0 </el-radio>
+          <el-radio value="1"> 1 </el-radio>
+          <el-radio value="2"> 2 </el-radio>
+          <el-radio value="3"> 3 </el-radio>
+          <el-radio value="4"> 4 </el-radio>
+          <el-radio value="5"> 5 </el-radio>
+        </el-radio-group>
+        <br>
+        
+        专利总共：
+        <el-radio-group v-model="totalRadio">
+          <el-radio value="0"> 0 </el-radio>
+          <el-radio value="1"> 1 </el-radio>
+          <el-radio value="2"> 2 </el-radio>
+          <el-radio value="3"> 3 </el-radio>
+          <el-radio value="4"> 4 </el-radio>
+          <el-radio value="5"> 5 </el-radio>
+        </el-radio-group>
+        <br>
+      </div>
 
 
-	    </div>
-	    <aside class="summaryBox" :id="'summaryBox' + index.toString()" v-if="showSummaryBox">
-	      <h3>中文概述</h3>
-	      <div class="innerSumBox">
-		&nbsp; 
-	      </div>
-	      
-	    </aside>
-	  </el-container>
+      <el-button
+	class="feedback-btn"
+	type="primary"
+	:loading="feedbackClicked"
+	@click="saveExec"
+	id="saveBtn">保存标签和反馈</el-button>
 
-	</template>
 
-	<script>
-	/* eslint-disable */
-	import { ElInput } from 'element-plus'
-	import { nextTick } from 'vue'
-	import axios from 'axios'
-	import * as r_const from '@/router/consts'
-	import * as utils_func from '@/utils/func'
+    </div>
+    <aside class="summaryBox" :id="'summaryBox' + index.toString()" v-if="showSummaryBox">
+      <h3>中文概述</h3>
+      <div class="innerSumBox">
+	&nbsp; 
+      </div>
+      
+    </aside>
+  </el-container>
 
-	const delay = ms => new Promise(res => setTimeout(res, ms));
+</template>
 
-	export default {
-	  name: 'RecommendationItem',
-	  props: {
-	    pubNum: {
-	      type: String,
-	      required: true
-	    },
-	    proposition: {
-	      type: String,
-	      required: true
-	    },
-	    problem: {
-	      type: String,
-	      required: true
-	    },
-	    result: {
-	      type: String,
-	      required: true
-	    },
-	    feedback: {
-	      type: Object,
-	    },
-	    tags: {
-	      type: Array,
-	    },
-	    index: {
-	      type: Number,
-	      required: true
-	    }
-	  },
-	  data() {
-	    return {
-	      translateClicked: false,
-	      translateDisabled: false,
+<script>
+/* eslint-disable */
+import { ElInput } from 'element-plus'
+import { nextTick } from 'vue'
+import axios from 'axios'
+import * as r_const from '@/router/consts'
+import * as utils_func from '@/utils/func'
+
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
+export default {
+  name: 'RecommendationItem',
+  props: {
+    pubNum: {
+      type: String,
+      required: true
+    },
+    proposition: {
+      type: String,
+      required: true
+    },
+    problem: {
+      type: String,
+      required: true
+    },
+    result: {
+      type: String,
+      required: true
+    },
+    feedback: {
+      type: Object,
+    },
+    tags: {
+      type: Array,
+    },
+    index: {
+      type: Number,
+      required: true
+    }
+  },
+  data() {
+    return {
+      translateClicked: false,
+      translateDisabled: false,
       feedbackClicked: false,
       summaryClicked: false,
       showPopup : false,
