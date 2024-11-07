@@ -12,14 +12,24 @@
     </el-form>
     <div class="table-container">
       <table class="main-table" cellspacing="0">
+        <tbody>
         <tr>
           <td>
-            <textarea style="width: 100%; height: 100%; border: none">Country 1</textarea>
+            <textarea style="width: 100%; height: 100%; border: none">Please put name of Language 1 here</textarea>
           </td>
           <td>
-            <textarea style="width: 100%; height: 100%; border: none">Country 2</textarea>
+            <textarea style="width: 100%; height: 100%; border: none">Please put name of Language 2 here</textarea>
           </td>
         </tr>
+        <tr>
+          <td>
+            <textarea style="width: 100%; height: 100%; border: none">Please put text of Language 1 here</textarea>
+          </td>
+          <td>
+            <textarea style="width: 100%; height: 100%; border: none">Please put text of Language 2 here</textarea>
+          </td>
+        </tr>
+        </tbody>
       </table>
     </div>
     <el-form>
@@ -71,12 +81,13 @@ export default {
       a.click()
       document.body.removeChild(a)
       try {
-        const delay = (ms) => new Promise((res) => setTimeout(res, ms))
-        await axios.get(r_const.queryCollectData, { params: { json: data } })
-        await delay(2000)
+        //const delay = (ms) => new Promise((res) => setTimeout(res, ms))
+        await axios.get(r_const.queryCollectData, { params: { json: data } }, { withCredentials: true }  )
+        //await delay(2000)
         this.save_clicked = false
       } catch (err) {
         console.error(err)
+        this.save_clicked = false
       }
     },
     delCol() {
@@ -104,7 +115,7 @@ export default {
         td.style.padding = '7px'
         let input = document.createElement('textarea')
         if (i == 0) {
-          input.textContent = 'Language ' + (this.cols + 1)
+          input.textContent = 'Please put name of Language ' + (this.cols + 1) + ' here'
         }
         input.style.width = '100%'
         input.style.height = '100%'
@@ -147,7 +158,7 @@ export default {
   /* justify-content: center; */
   align-items: center;
   height: 74vh;
-  width: 80vw;
+  width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   border: 2px solid #d4d3d3e6;

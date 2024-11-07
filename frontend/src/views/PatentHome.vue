@@ -1,10 +1,20 @@
 <template>
   <el-container style="height: 85vh">
-    <el-container class='patent-container'>
+     <el-tabs
+       class = "tabs"
+       v-model="editableTabsValue"
+       type="card"
+       @tab-remove="removeTab">
+       <el-tab-pane label="专利检索" name = "search">
+         <el-container class='patent-container'>
+           <r-search></r-search>
+         </el-container>
+       </el-tab-pane>
 
-     <r-search></r-search>
-
-    </el-container>
+       <el-tab-pane label = "RIOS Collect" name = "collect">
+         <r-collect></r-collect>
+       </el-tab-pane>
+     </el-tabs>
   </el-container>
 </template>
 
@@ -22,7 +32,7 @@ import RIOSResponse from './home/RIOSResponse.vue'
 import SearchPage from './recommend/SearchPage.vue'
 import SQLGenPage from './home/RIOSText2sql.vue'
 import RIOSTranslator from './home/RIOSTranslator.vue'
-//import RIOSCollect from './home/RIOSCollect.vue'
+import RIOSCollect from './home/RIOSCollect.vue'
 import FileManager from './file_manager/FileManager.vue'
 import * as r_const from '@/router/consts'
 import axios from 'axios'
@@ -35,7 +45,7 @@ export default {
     //'r-response': RIOSResponse,
     //'r-sqlgen': SQLGenPage,
     //'r-translator': RIOSTranslator,
-    //'r-collect': RIOSCollect,
+    'r-collect': RIOSCollect,
     //'r-filemanage': FileManager,
     ElIconMessage,
     ElIconMenu,
@@ -261,6 +271,10 @@ input:checked + .slider:before {
     top: 15%;
     margin-left:10%;
     margin-top:10px; */
+}
+.tabs {
+  width : 100%;
+
 }
 
 
