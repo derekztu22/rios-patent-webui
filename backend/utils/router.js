@@ -734,18 +734,13 @@ app.get('/pollSummary', async (req, res) => {
 app.get('/translatePatent', async (req, res, next) => { req.setTimeout(0); next(); }, async (req, res) => {
     logger.info("Call /translatePatent");
     res.setHeader("Access-Control-Allow-Origin", "*");
-    cookie = req.query.cookie;
     const api = axios.create({
         withCredentials: true,
-        headers: {
-            Cookie: cookie,
-        },
         xsrfCookieName: 'csrf_access_token',
         xsrfHeaderName: "x-csrftoken"
     });
-    
     payload = {
-        "pubNum": req.query.pubNum
+        "text": req.query.text
     }
     response = await api.get(global.getPTranslateRouter, { params: payload })
     res.send(response.data)

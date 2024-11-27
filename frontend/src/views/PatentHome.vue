@@ -1,5 +1,7 @@
 <template>
   <el-container style="height: 85vh">
+     <r-search></r-search>
+      <!---
      <el-tabs
        class = "tabs"
        v-model="editableTabsValue"
@@ -15,6 +17,7 @@
          <r-collect></r-collect>
        </el-tab-pane>
      </el-tabs>
+     --->
   </el-container>
 </template>
 

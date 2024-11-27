@@ -441,18 +441,53 @@ export default {
     },
     async translateToChinese() {
       this.translateClicked = true;
-      const response = await axios.get(
+
+      var response = await axios.get(
             r_const.queryPatentTranslate,
             {
               params:  {
-                pubNum: this._pubNum,
+                text: this.problemText,
               },
             },
             { withCredentials: true }
          );
-      this.propositionText = response.data.results.method;
-      this.problemText = response.data.results.problem;
-      this.resultText = response.data.results.effect;
+      this.problemText = response.data.results.text;
+
+      response = await axios.get(
+            r_const.queryPatentTranslate,
+            {
+              params:  {
+                text: this.propositionText,
+              },
+            },
+            { withCredentials: true }
+         );
+      this.propositionText = response.data.results.text;
+
+
+      response = await axios.get(
+            r_const.queryPatentTranslate,
+            {
+              params:  {
+                text: this.resultText,
+              },
+            },
+            { withCredentials: true }
+         );
+      this.resultText = response.data.results.text;
+    
+
+      //const response = await axios.get(
+      //      r_const.queryPatentTranslate,
+      //      {
+      //        params:  {
+      //          pubNum: this._pubNum,
+      //        },
+      //      },
+      //      { withCredentials: true }
+      //   );
+      //this.problemText = response.data.results.text;
+      //this.resultText = response.data.results.text;
       this.translateClicked = false;
       this.translateDisabled = true;
     },
