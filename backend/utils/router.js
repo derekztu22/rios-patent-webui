@@ -742,7 +742,8 @@ app.get('/translatePatent', async (req, res, next) => { req.setTimeout(0); next(
     payload = {
         "text": req.query.text
     }
-    response = await api.get(global.getPTranslateRouter, { params: payload })
+
+    response = await api.post(global.getPTranslateRouter, payload)
     res.send(response.data)
 })
 
